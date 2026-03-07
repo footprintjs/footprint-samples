@@ -40,6 +40,7 @@ const receiveApplication = async (scope: ScopeFacade) => {
 
 const pullCreditReport = async (scope: ScopeFacade) => {
   const { creditScore } = scope.getValue('app') as typeof app;
+  await new Promise((r) => setTimeout(r, 40)); // simulate credit bureau API call
   const tier =
     creditScore >= 740
       ? 'excellent'
@@ -65,6 +66,7 @@ const calculateDTI = async (scope: ScopeFacade) => {
 };
 
 const verifyEmployment = async (scope: ScopeFacade) => {
+  await new Promise((r) => setTimeout(r, 25)); // simulate employer verification
   const { employmentStatus, employmentYears } = scope.getValue('app') as typeof app;
   const verified = employmentStatus !== 'unemployed';
   scope.setValue('employmentVerified', verified);

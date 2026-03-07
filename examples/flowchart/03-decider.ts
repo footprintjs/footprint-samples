@@ -49,6 +49,7 @@ const chart = new FlowChartBuilder()
     .setDefault('trial')
     .end()
   .addFunction('ApplyDiscount', async (scope: ScopeFacade) => {
+    await new Promise((r) => setTimeout(r, 15)); // simulate discount calculation API
     const user = scope.getValue('user') as any;
     const discount = scope.getValue('discount') as number;
     const finalAmount = user.spend * (1 - discount / 100);

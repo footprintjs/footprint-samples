@@ -1,72 +1,148 @@
 /**
- * Feature: MetricRecorder — Observability
+ * Feature: MetricRecorder — Full Observability
  *
  * MetricRecorder tracks per-stage metrics:
  * - Read/write/commit counts
- * - Stage duration (latency)
+ * - Stage duration (latency) via onStageStart/onStageEnd
  * - Invocation count
  *
- * Use this for dashboards, alerts, or performance profiling.
+ * This example simulates a realistic async pipeline with:
+ * - Slow API calls (varying latency per stage)
+ * - A stage that throws an error
+ * - try/catch error handling around executor.run()
+ * - DebugRecorder capturing errors for diagnostics
  *
  * Run:  npm run feature:metrics
  */
 
 import {
-  flowChart,
+  FlowChartBuilder,
   FlowChartExecutor,
   ScopeFacade,
   MetricRecorder,
+  DebugRecorder,
 } from 'footprint';
 
 (async () => {
 
 const metrics = new MetricRecorder();
+const debug = new DebugRecorder('verbose');
 
-const chart = flowChart('FetchData', async (scope: ScopeFacade) => {
-  scope.setValue('items', [1, 2, 3, 4, 5]);
-  scope.setValue('source', 'api');
-  // Simulate some async work
-  await new Promise((r) => setTimeout(r, 50));
-})
-  .addFunction('Transform', async (scope: ScopeFacade) => {
-    const items = scope.getValue('items') as number[];
-    const doubled = items.map((n) => n * 2);
-    scope.setValue('transformed', doubled);
-    scope.setValue('count', doubled.length);
-    // Simulate processing
-    await new Promise((r) => setTimeout(r, 30));
+// ── Simulated async helpers ─────────────────────────────────────────────
+
+const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// ── Pipeline 1: Happy path (all stages succeed) ────────────────────────
+
+console.log('=== Pipeline 1: Happy Path ===\n');
+
+const happyChart = new FlowChartBuilder()
+  .start('FetchUser', async (scope: ScopeFacade) => {
+    await delay(60); // simulate DB query
+    scope.setValue('user', { id: 1, name: 'Alice', tier: 'premium' });
   })
-  .addFunction('Summarize', async (scope: ScopeFacade) => {
-    const items = scope.getValue('transformed') as number[];
-    const count = scope.getValue('count') as number;
-    const sum = items.reduce((a, b) => a + b, 0);
-    scope.setValue('summary', { count, sum, avg: sum / count });
-    await new Promise((r) => setTimeout(r, 20));
+  .addFunction('CallPricingAPI', async (scope: ScopeFacade) => {
+    const user = scope.getValue('user') as any;
+    await delay(120); // simulate slow external API
+    scope.setValue('price', user.tier === 'premium' ? 79.99 : 99.99);
+    scope.setValue('discount', user.tier === 'premium' ? 20 : 0);
+  })
+  .addFunction('CalculateTax', async (scope: ScopeFacade) => {
+    const price = scope.getValue('price') as number;
+    await delay(10); // fast calculation
+    scope.setValue('tax', Math.round(price * 0.08 * 100) / 100);
+    scope.setValue('total', Math.round((price * 1.08) * 100) / 100);
+  })
+  .addFunction('SaveOrder', async (scope: ScopeFacade) => {
+    const total = scope.getValue('total') as number;
+    const user = scope.getValue('user') as any;
+    await delay(45); // simulate DB write
+    scope.setValue('orderId', `ORD-${Date.now()}`);
+    scope.setValue('confirmation', `${user.name}: $${total}`);
   })
   .build();
 
-const scopeFactory = (ctx: any, stageName: string) => {
+const happyScopeFactory = (ctx: any, stageName: string) => {
   const scope = new ScopeFacade(ctx, stageName);
   scope.attachRecorder(metrics);
   return scope;
 };
 
-const executor = new FlowChartExecutor(chart, scopeFactory);
-await executor.run();
+const happyExecutor = new FlowChartExecutor(happyChart, happyScopeFactory);
+await happyExecutor.run();
 
-// ── Print per-stage metrics ─────────────────────────────────────────────
+// Print per-stage metrics
+const happyMetrics = metrics.getMetrics();
 
-console.log('=== MetricRecorder — Per-Stage Observability ===\n');
-
-const aggregated = metrics.getMetrics();
-
-for (const [stage, m] of aggregated.stageMetrics) {
-  console.log(`  ${stage}:`);
-  console.log(`    reads: ${m.readCount}, writes: ${m.writeCount}, commits: ${m.commitCount}`);
-  console.log(`    duration: ${m.totalDuration}ms, invocations: ${m.invocationCount}`);
+for (const [stage, m] of happyMetrics.stageMetrics) {
+  const bar = '█'.repeat(Math.max(1, Math.round(m.totalDuration / 5)));
+  console.log(`  ${stage.padEnd(16)} ${bar} ${m.totalDuration}ms  (r:${m.readCount} w:${m.writeCount})`);
 }
 
-console.log('\n  Summary:');
-console.log(`    total reads: ${aggregated.totalReads}, total writes: ${aggregated.totalWrites}`);
-console.log(`    total pipeline duration: ${aggregated.totalDuration}ms`);
+console.log(`\n  Total: ${happyMetrics.totalDuration}ms | ${happyMetrics.totalReads} reads, ${happyMetrics.totalWrites} writes`);
+
+// ── Pipeline 2: Error path (stage throws) ───────────────────────────────
+
+console.log('\n=== Pipeline 2: Error Handling ===\n');
+
+const errorMetrics = new MetricRecorder();
+
+const silentLogger = { info() {}, log() {}, debug() {}, warn() {}, error() {} };
+
+const errorChart = new FlowChartBuilder()
+  .setLogger(silentLogger)
+  .start('LoadConfig', async (scope: ScopeFacade) => {
+    await delay(20);
+    scope.setValue('apiUrl', 'https://api.example.com');
+    scope.setValue('retries', 3);
+  })
+  .addFunction('CallExternalAPI', async (scope: ScopeFacade) => {
+    const url = scope.getValue('apiUrl') as string;
+    await delay(80); // simulate network call
+    // Simulate an API failure
+    throw new Error(`503 Service Unavailable: ${url} timed out after 80ms`);
+  })
+  .addFunction('ProcessResponse', async (scope: ScopeFacade) => {
+    // This stage never runs
+    scope.setValue('result', 'processed');
+  })
+  .build();
+
+const errorScopeFactory = (ctx: any, stageName: string) => {
+  const scope = new ScopeFacade(ctx, stageName);
+  scope.attachRecorder(errorMetrics);
+  scope.attachRecorder(debug);
+  return scope;
+};
+
+const errorExecutor = new FlowChartExecutor(errorChart, errorScopeFactory);
+
+try {
+  await errorExecutor.run();
+} catch (err: any) {
+  console.log(`  Caught error: ${err.message}`);
+}
+
+// Show metrics — note how ProcessResponse has no metrics (never ran)
+const errResult = errorMetrics.getMetrics();
+
+console.log('\n  Per-stage breakdown:');
+for (const [stage, m] of errResult.stageMetrics) {
+  const bar = '█'.repeat(Math.max(1, Math.round(m.totalDuration / 5)));
+  console.log(`    ${stage.padEnd(18)} ${bar} ${m.totalDuration}ms  (r:${m.readCount} w:${m.writeCount})`);
+}
+
+console.log(`\n  Total before crash: ${errResult.totalDuration}ms`);
+console.log(`  ProcessResponse never ran — no metrics recorded for it.`);
+
+// Show debug entries captured by DebugRecorder
+const debugEntries = debug.getEntries();
+const errorEntries = debugEntries.filter(e => e.type === 'error');
+const writeEntries = debugEntries.filter(e => e.type === 'write');
+
+console.log(`\n  DebugRecorder captured: ${writeEntries.length} writes, ${errorEntries.length} errors`);
+if (errorEntries.length > 0) {
+  console.log(`  Last error: stage="${errorEntries[0].stageName}"`);
+}
+
 })().catch(console.error);
