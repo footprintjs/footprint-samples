@@ -5,10 +5,20 @@ Runnable examples for the [footprint](https://github.com/footprintjs/footPrint) 
 ## Setup
 
 ```bash
+# Clone both repos side-by-side
+git clone https://github.com/footprintjs/footPrint.git
 git clone https://github.com/footprintjs/footprint-samples.git
-cd footprint-samples
+
+# Build the library first
+cd footPrint
+npm install && npm run build
+
+# Then install samples (links to local footPrint via file: dependency)
+cd ../footprint-samples
 npm install
 ```
+
+> The samples use `"footprint": "file:../footPrint"` so both repos must be siblings in the same parent directory.
 
 ## Quick Start
 
@@ -29,6 +39,9 @@ Each example demonstrates a single feature in isolation:
 | **Recorders** | `npm run feature:recorders` | Custom `Recorder` implementation for audit logging |
 | **Typed Scope** | `npm run feature:typed-scope` | Zod-based schema validation for scope |
 | **Metrics** | `npm run feature:metrics` | `MetricRecorder` for per-stage latency, read/write counts |
+| **Streaming** | `npm run feature:streaming` | `addStreamingFunction` with token-by-token `StreamHandlers` |
+| **Error Handling** | `npm run feature:errors` | Stage errors, try/catch, graceful degradation, `DebugRecorder` |
+| **Debug + Mermaid** | `npm run feature:debug` | `DebugRecorder` full trace + `toMermaid()` flowchart diagram |
 
 ## Flowchart Examples
 

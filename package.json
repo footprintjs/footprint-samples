@@ -10,13 +10,16 @@
     "feature:recorders": "npx tsx examples/features/03-recorders.ts",
     "feature:typed-scope": "npx tsx examples/features/04-typed-scope.ts",
     "feature:metrics": "npx tsx examples/features/05-metrics.ts",
+    "feature:streaming": "npx tsx examples/features/06-streaming.ts",
+    "feature:errors": "npx tsx examples/features/07-error-handling.ts",
+    "feature:debug": "npx tsx examples/features/08-debug-and-mermaid.ts",
     "flow:linear": "npx tsx examples/flowchart/01-linear.ts",
     "flow:fork": "npx tsx examples/flowchart/02-fork.ts",
     "flow:decider": "npx tsx examples/flowchart/03-decider.ts",
     "flow:selector": "npx tsx examples/flowchart/04-selector.ts",
     "flow:subflow": "npx tsx examples/flowchart/05-subflow.ts",
     "flow:loops": "npx tsx examples/flowchart/06-loops.ts",
-    "all": "npm run quick-start && npm run feature:values && npm run feature:narrative && npm run feature:recorders && npm run feature:typed-scope && npm run feature:metrics && npm run flow:linear && npm run flow:fork && npm run flow:decider && npm run flow:selector && npm run flow:subflow && npm run flow:loops"
+    "all": "npm run quick-start && npm run feature:values && npm run feature:narrative && npm run feature:recorders && npm run feature:typed-scope && npm run feature:metrics && npm run feature:streaming && npm run feature:errors && npm run feature:debug && npm run flow:linear && npm run flow:fork && npm run flow:decider && npm run flow:selector && npm run flow:subflow && npm run flow:loops"
   },
   "dependencies": {
     "footprint": "file:../footPrint",
