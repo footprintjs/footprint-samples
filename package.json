@@ -14,13 +14,14 @@
     "feature:errors": "npx tsx examples/features/07-error-handling.ts",
     "feature:debug": "npx tsx examples/features/08-debug-and-mermaid.ts",
     "feature:break": "npx tsx examples/features/09-break-fn.ts",
+    "feature:contract": "npx tsx examples/features/10-contract-openapi.ts",
     "flow:linear": "npx tsx examples/flowchart/01-linear.ts",
     "flow:fork": "npx tsx examples/flowchart/02-fork.ts",
     "flow:decider": "npx tsx examples/flowchart/03-decider.ts",
     "flow:selector": "npx tsx examples/flowchart/04-selector.ts",
     "flow:subflow": "npx tsx examples/flowchart/05-subflow.ts",
     "flow:loops": "npx tsx examples/flowchart/06-loops.ts",
-    "all": "npm run quick-start && npm run feature:values && npm run feature:narrative && npm run feature:recorders && npm run feature:typed-scope && npm run feature:metrics && npm run feature:streaming && npm run feature:errors && npm run feature:debug && npm run feature:break && npm run flow:linear && npm run flow:fork && npm run flow:decider && npm run flow:selector && npm run flow:subflow && npm run flow:loops"
+    "all": "npm run quick-start && npm run feature:values && npm run feature:narrative && npm run feature:recorders && npm run feature:typed-scope && npm run feature:metrics && npm run feature:streaming && npm run feature:errors && npm run feature:debug && npm run feature:break && npm run feature:contract && npm run flow:linear && npm run flow:fork && npm run flow:decider && npm run flow:selector && npm run flow:subflow && npm run flow:loops"
   },
   "dependencies": {
     "footprint": "file:../footPrint",
