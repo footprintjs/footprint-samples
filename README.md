@@ -42,6 +42,7 @@ Each example demonstrates a single feature in isolation:
 | **Streaming** | `npm run feature:streaming` | `addStreamingFunction` with token-by-token `StreamHandlers` |
 | **Error Handling** | `npm run feature:errors` | Stage errors, try/catch, graceful degradation, `DebugRecorder` |
 | **Debug + Mermaid** | `npm run feature:debug` | `DebugRecorder` full trace + `toMermaid()` flowchart diagram |
+| **breakFn** | `npm run feature:break` | Early pipeline termination — validation gates, budget limits |
 
 ## Flowchart Examples
 
