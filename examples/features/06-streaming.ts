@@ -77,11 +77,9 @@ const chart = new FlowChartBuilder()
   })
   .build();
 
-const scopeFactory = (ctx: any, stageName: string) => new ScopeFacade(ctx, stageName);
-
 const executor = new FlowChartExecutor(
   chart,
-  scopeFactory,
+  undefined, // scopeFactory — uses default ScopeFacade
   undefined, // defaultValuesForContext
   undefined, // initialContext
   undefined, // readOnlyContext

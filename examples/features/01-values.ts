@@ -10,6 +10,7 @@
  */
 
 import { flowChart, FlowChartExecutor, ScopeFacade } from 'footprint';
+// Note: scopeFactory is optional — FlowChartExecutor defaults to ScopeFacade
 
 (async () => {
 
@@ -42,8 +43,7 @@ const chart = flowChart('SetValues', async (scope: ScopeFacade) => {
   })
   .build();
 
-const scopeFactory = (ctx: any, stageName: string) => new ScopeFacade(ctx, stageName);
-const executor = new FlowChartExecutor(chart, scopeFactory);
+const executor = new FlowChartExecutor(chart);
 await executor.run();
 
 console.log('\nAll value types work with setValue/getValue.');

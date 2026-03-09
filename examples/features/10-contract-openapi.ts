@@ -105,8 +105,7 @@ import { z } from 'zod';
 
   console.log('\n=== Pipeline Execution ===\n');
 
-  const scopeFactory = (ctx: any, stageName: string) => new ScopeFacade(ctx, stageName);
-  const executor = new FlowChartExecutor(chart, scopeFactory);
+  const executor = new FlowChartExecutor(chart);
   await executor.run();
 
   const narrative = executor.getNarrative();

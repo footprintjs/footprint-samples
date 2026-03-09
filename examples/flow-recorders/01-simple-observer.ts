@@ -47,8 +47,7 @@ const observer: FlowRecorder = {
   },
 };
 
-const scopeFactory = (ctx: any, stageName: string) => new ScopeFacade(ctx, stageName);
-const executor = new FlowChartExecutor(chart, scopeFactory);
+const executor = new FlowChartExecutor(chart);
 executor.attachFlowRecorder(observer);
 await executor.run();
 

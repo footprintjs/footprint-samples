@@ -139,8 +139,7 @@ const chart2 = new FlowChartBuilder()
   })
   .build();
 
-const scopeFactory2 = (ctx: any, stageName: string) => new ScopeFacade(ctx, stageName);
-const executor2 = new FlowChartExecutor(chart2, scopeFactory2);
+const executor2 = new FlowChartExecutor(chart2);
 await executor2.run();
 
 console.log('  Pipeline completed with fallback — no crash');

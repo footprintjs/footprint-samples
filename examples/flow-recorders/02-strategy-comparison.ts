@@ -88,9 +88,6 @@ function buildSyncChart(totalBatches: number) {
     .build();
 }
 
-const scopeFactory = (ctx: any, stageName: string) =>
-  new ScopeFacade(ctx, stageName);
-
 // ── Custom Strategy: EveryFailureRecorder ────────────────────────────
 // Demonstrates consumer power: a custom recorder that only narrates
 // iterations where something went wrong (every 7th batch).
@@ -176,7 +173,6 @@ class EveryFailureRecorder extends NarrativeFlowRecorder {
   for (const { name, recorder, note } of strategies) {
     const executor = new FlowChartExecutor(
       buildSyncChart(BATCH_COUNT),
-      scopeFactory,
     );
     executor.attachFlowRecorder(recorder);
     await executor.run();

@@ -46,8 +46,6 @@ function buildLoopChart(iterations = 20) {
     .build();
 }
 
-const scopeFactory = (ctx: any, stageName: string) => new ScopeFacade(ctx, stageName);
-
 (async () => {
 
   // ─── 1. Custom FlowRecorder: Metrics ────────────────────────────────────
@@ -71,7 +69,7 @@ const scopeFactory = (ctx: any, stageName: string) => new ScopeFacade(ctx, stage
 
   // Attach alongside default NarrativeFlowRecorder so we still get narrative
   const narrator1 = new NarrativeFlowRecorder();
-  let executor = new FlowChartExecutor(buildLoopChart(10), scopeFactory);
+  let executor = new FlowChartExecutor(buildLoopChart(10));
   executor.attachFlowRecorder(narrator1);
   executor.attachFlowRecorder(metrics);
   await executor.run();
@@ -81,7 +79,7 @@ const scopeFactory = (ctx: any, stageName: string) => new ScopeFacade(ctx, stage
 
   console.log('=== 2. Windowed Strategy (first 3 + last 2) ===\n');
 
-  executor = new FlowChartExecutor(buildLoopChart(20), scopeFactory);
+  executor = new FlowChartExecutor(buildLoopChart(20));
   executor.attachFlowRecorder(new WindowedNarrativeFlowRecorder(3, 2));
   await executor.run();
 
@@ -93,7 +91,7 @@ const scopeFactory = (ctx: any, stageName: string) => new ScopeFacade(ctx, stage
 
   console.log('=== 3. Silent Strategy (summary only) ===\n');
 
-  executor = new FlowChartExecutor(buildLoopChart(20), scopeFactory);
+  executor = new FlowChartExecutor(buildLoopChart(20));
   executor.attachFlowRecorder(new SilentNarrativeFlowRecorder());
   await executor.run();
 
@@ -105,7 +103,7 @@ const scopeFactory = (ctx: any, stageName: string) => new ScopeFacade(ctx, stage
 
   console.log('=== 4. Adaptive Strategy (full for 3, then every 5th) ===\n');
 
-  executor = new FlowChartExecutor(buildLoopChart(20), scopeFactory);
+  executor = new FlowChartExecutor(buildLoopChart(20));
   executor.attachFlowRecorder(new AdaptiveNarrativeFlowRecorder(3, 5));
   await executor.run();
 
@@ -118,7 +116,7 @@ const scopeFactory = (ctx: any, stageName: string) => new ScopeFacade(ctx, stage
   console.log('=== 5. Separate Strategy (main + loop detail channels) ===\n');
 
   const separate = new SeparateNarrativeFlowRecorder();
-  executor = new FlowChartExecutor(buildLoopChart(20), scopeFactory);
+  executor = new FlowChartExecutor(buildLoopChart(20));
   executor.attachFlowRecorder(separate);
   await executor.run();
 

@@ -37,8 +37,6 @@ function buildLoopChart(iterations: number) {
     .build();
 }
 
-const scopeFactory = (ctx: any, stageName: string) => new ScopeFacade(ctx, stageName);
-
 (async () => {
 
   // ── 1. Narrative + Metrics side-by-side ────────────────────────────────
@@ -58,7 +56,7 @@ const scopeFactory = (ctx: any, stageName: string) => new ScopeFacade(ctx, stage
     },
   };
 
-  let executor = new FlowChartExecutor(buildLoopChart(10), scopeFactory);
+  let executor = new FlowChartExecutor(buildLoopChart(10));
   executor.attachFlowRecorder(silent);
   executor.attachFlowRecorder(timingRecorder);
   await executor.run();
@@ -72,7 +70,7 @@ const scopeFactory = (ctx: any, stageName: string) => new ScopeFacade(ctx, stage
 
   console.log('=== 2. Attach / Detach / List ===\n');
 
-  executor = new FlowChartExecutor(buildLoopChart(5), scopeFactory);
+  executor = new FlowChartExecutor(buildLoopChart(5));
   executor.attachFlowRecorder(new NarrativeFlowRecorder());
   executor.attachFlowRecorder({ id: 'audit', onLoop: () => {} });
   executor.attachFlowRecorder({ id: 'debug', onStageExecuted: () => {} });
@@ -98,7 +96,7 @@ const scopeFactory = (ctx: any, stageName: string) => new ScopeFacade(ctx, stage
 
   const goodRecorder = new NarrativeFlowRecorder();
 
-  executor = new FlowChartExecutor(buildLoopChart(5), scopeFactory);
+  executor = new FlowChartExecutor(buildLoopChart(5));
   executor.attachFlowRecorder(errorRecorder);
   executor.attachFlowRecorder(goodRecorder);
   await executor.run();
