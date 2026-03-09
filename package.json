@@ -16,6 +16,7 @@
     "feature:break": "npx tsx examples/features/09-break-fn.ts",
     "feature:contract": "npx tsx examples/features/10-contract-openapi.ts",
     "feature:flow-recorders": "npx tsx examples/features/11-flow-recorders.ts",
+    "feature:redaction": "npx tsx examples/features/12-redaction.ts",
     "fr:simple": "npx tsx examples/flow-recorders/01-simple-observer.ts",
     "fr:compare": "npx tsx examples/flow-recorders/02-strategy-comparison.ts",
     "fr:custom": "npx tsx examples/flow-recorders/03-custom-recorder.ts",
