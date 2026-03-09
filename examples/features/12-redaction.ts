@@ -294,6 +294,7 @@ import {
       ssn: '999-88-7777',
       dob: '1990-05-15',
       bloodType: 'O+',
+      address: { street: '123 Main St', city: 'LA', zip: '90210' },
     });
   })
     .addFunction('Process', async (scope: ScopeFacade) => {
@@ -314,7 +315,7 @@ import {
   executor6.setRedactionPolicy({
     keys: ['ssn'],                                // exact key match
     patterns: [/password|token|secret/i],          // regex pattern match
-    fields: { patient: ['ssn', 'dob'] },          // field-level scrubbing
+    fields: { patient: ['ssn', 'dob', 'address.zip'] }, // dot-notation for nested fields
   });
 
   await executor6.run();
@@ -332,4 +333,5 @@ import {
 
   console.log('\n  Key insight: zero per-call flags — one policy config');
   console.log('  covers exact keys, regex patterns, and field-level scrubbing.');
+  console.log('  Dot-notation (address.zip) reaches nested fields automatically.');
 })().catch(console.error);
