@@ -275,4 +275,61 @@ import {
 
   console.log('\n  Key insight: developers never manually pass `true` —');
   console.log('  the scope class config handles it automatically.');
+
+  // ── 6. RedactionPolicy — declarative, config-driven ───────────────────
+
+  console.log('\n=== 6. RedactionPolicy (Config-Driven) ===\n');
+
+  // Define once at the executor level — no per-call flags needed.
+  // Covers exact keys, regex patterns, and field-level scrubbing.
+
+  const chart6 = flowChart('Register', async (scope: ScopeFacade) => {
+    // Just write values — the policy handles redaction automatically
+    scope.setValue('ssn', '999-88-7777');
+    scope.setValue('email', 'alice@example.com');
+    scope.setValue('dbPassword', 'hunter2');
+    scope.setValue('authToken', 'bearer-xyz-789');
+    scope.setValue('patient', {
+      name: 'Alice Johnson',
+      ssn: '999-88-7777',
+      dob: '1990-05-15',
+      bloodType: 'O+',
+    });
+  })
+    .addFunction('Process', async (scope: ScopeFacade) => {
+      // Runtime gets real values — business logic works normally
+      const ssn = scope.getValue('ssn') as string;
+      const patient = scope.getValue('patient') as Record<string, unknown>;
+      scope.setValue('verified', ssn.length > 0 && patient.name !== undefined);
+    })
+    .setEnableNarrative()
+    .build();
+
+  const executor6 = new FlowChartExecutor(
+    chart6,
+    (ctx: any, name: string) => new ScopeFacade(ctx, name),
+  );
+
+  // One config, three dimensions:
+  executor6.setRedactionPolicy({
+    keys: ['ssn'],                                // exact key match
+    patterns: [/password|token|secret/i],          // regex pattern match
+    fields: { patient: ['ssn', 'dob'] },          // field-level scrubbing
+  });
+
+  await executor6.run();
+
+  console.log('Narrative (policy auto-redacts):');
+  const narrative6 = executor6.getNarrative() as string[];
+  narrative6.forEach((line) => console.log(`  ${line}`));
+
+  // Audit trail — compliance-friendly, never includes values
+  const report = executor6.getRedactionReport();
+  console.log('\nRedaction Report (audit trail):');
+  console.log(`  Redacted keys: ${report.redactedKeys.join(', ')}`);
+  console.log(`  Field redactions: ${JSON.stringify(report.fieldRedactions)}`);
+  console.log(`  Patterns: ${report.patterns.join(', ')}`);
+
+  console.log('\n  Key insight: zero per-call flags — one policy config');
+  console.log('  covers exact keys, regex patterns, and field-level scrubbing.');
 })().catch(console.error);
