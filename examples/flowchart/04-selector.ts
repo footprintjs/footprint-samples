@@ -64,7 +64,7 @@ const executor = new FlowChartExecutor(chart, scopeFactory);
 await executor.run();
 
 const narrative = new CombinedNarrativeBuilder().build(
-  executor.getNarrative(),
+  executor.getFlowNarrative(),
   recorder,
 );
 

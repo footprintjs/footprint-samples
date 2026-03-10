@@ -63,7 +63,7 @@ const executor1 = new FlowChartExecutor(validationChart, scopeFactory1);
 await executor1.run();
 
 const narrative1 = new CombinedNarrativeBuilder().build(
-  executor1.getNarrative(),
+  executor1.getFlowNarrative(),
   recorder,
 );
 
@@ -133,7 +133,7 @@ const executor2 = new FlowChartExecutor(budgetChart, scopeFactory2);
 await executor2.run();
 
 const narrative2 = new CombinedNarrativeBuilder().build(
-  executor2.getNarrative(),
+  executor2.getFlowNarrative(),
   recorder2,
 );
 

@@ -68,7 +68,7 @@ const scopeFactory = (ctx: any, stageName: string) => {
 const executor = new FlowChartExecutor(chart, scopeFactory);
 await executor.run();
 
-const flowNarrative = executor.getNarrative();
+const flowNarrative = executor.getFlowNarrative();
 const combined = new CombinedNarrativeBuilder();
 const narrative = combined.build(flowNarrative, recorder);
 

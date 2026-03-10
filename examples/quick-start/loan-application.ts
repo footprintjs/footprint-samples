@@ -150,7 +150,7 @@ await executor.run();
 
 // ── Print the causal trace ──────────────────────────────────────────────
 
-const flowNarrative = executor.getNarrative();
+const flowNarrative = executor.getFlowNarrative();
 const combined = new CombinedNarrativeBuilder();
 const narrative = combined.build(flowNarrative, recorder);
 
