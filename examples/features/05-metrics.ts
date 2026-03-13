@@ -13,6 +13,7 @@
  * - DebugRecorder capturing errors for diagnostics
  *
  * Run:  npm run feature:metrics
+ * Try it: https://footprintjs.github.io/footprint-playground/samples/metrics
  */
 
 import {
@@ -40,26 +41,26 @@ const happyChart = new FlowChartBuilder()
   .start('FetchUser', async (scope: ScopeFacade) => {
     await delay(60); // simulate DB query
     scope.setValue('user', { id: 1, name: 'Alice', tier: 'premium' });
-  })
+  }, 'fetch-user')
   .addFunction('CallPricingAPI', async (scope: ScopeFacade) => {
     const user = scope.getValue('user') as any;
     await delay(120); // simulate slow external API
     scope.setValue('price', user.tier === 'premium' ? 79.99 : 99.99);
     scope.setValue('discount', user.tier === 'premium' ? 20 : 0);
-  })
+  }, 'call-pricing-api')
   .addFunction('CalculateTax', async (scope: ScopeFacade) => {
     const price = scope.getValue('price') as number;
     await delay(10); // fast calculation
     scope.setValue('tax', Math.round(price * 0.08 * 100) / 100);
     scope.setValue('total', Math.round((price * 1.08) * 100) / 100);
-  })
+  }, 'calculate-tax')
   .addFunction('SaveOrder', async (scope: ScopeFacade) => {
     const total = scope.getValue('total') as number;
     const user = scope.getValue('user') as any;
     await delay(45); // simulate DB write
     scope.setValue('orderId', `ORD-${Date.now()}`);
     scope.setValue('confirmation', `${user.name}: $${total}`);
-  })
+  }, 'save-order')
   .build();
 
 const happyScopeFactory = (ctx: any, stageName: string) => {
@@ -95,17 +96,17 @@ const errorChart = new FlowChartBuilder()
     await delay(20);
     scope.setValue('apiUrl', 'https://api.example.com');
     scope.setValue('retries', 3);
-  })
+  }, 'load-config')
   .addFunction('CallExternalAPI', async (scope: ScopeFacade) => {
     const url = scope.getValue('apiUrl') as string;
     await delay(80); // simulate network call
     // Simulate an API failure
     throw new Error(`503 Service Unavailable: ${url} timed out after 80ms`);
-  })
+  }, 'call-external-api')
   .addFunction('ProcessResponse', async (scope: ScopeFacade) => {
     // This stage never runs
     scope.setValue('result', 'processed');
-  })
+  }, 'process-response')
   .build();
 
 const errorScopeFactory = (ctx: any, stageName: string) => {

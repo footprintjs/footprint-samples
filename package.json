@@ -18,6 +18,7 @@
     "feature:flow-recorders": "npx tsx examples/features/11-flow-recorders.ts",
     "feature:redaction": "npx tsx examples/features/12-redaction.ts",
     "feature:scope-factory": "npx tsx examples/features/13-optional-scope-factory.ts",
+    "feature:manifest": "npx tsx examples/features/14-subflow-manifest.ts",
     "fr:simple": "npx tsx examples/flow-recorders/01-simple-observer.ts",
     "fr:compare": "npx tsx examples/flow-recorders/02-strategy-comparison.ts",
     "fr:custom": "npx tsx examples/flow-recorders/03-custom-recorder.ts",
@@ -30,6 +31,8 @@
     "flow:selector": "npx tsx examples/flowchart/04-selector.ts",
     "flow:subflow": "npx tsx examples/flowchart/05-subflow.ts",
     "flow:loops": "npx tsx examples/flowchart/06-loops.ts",
+    "errors:input-safety": "npx tsx examples/errors/input-safety.ts",
+    "errors:structured": "npx tsx examples/errors/structured-error-flow.ts",
     "integration:state-machine": "npx tsx examples/integrations/state-machine.ts",
     "all": "npm run quick-start && npm run feature:values && npm run feature:narrative && npm run feature:recorders && npm run feature:typed-scope && npm run feature:metrics && npm run feature:streaming && npm run feature:errors && npm run feature:debug && npm run feature:break && npm run feature:contract && npm run flow:linear && npm run flow:fork && npm run flow:decider && npm run flow:selector && npm run flow:subflow && npm run flow:loops"
   },

@@ -9,6 +9,7 @@
  *   RECEIVED → VALIDATED → PAYMENT_PROCESSED → SHIPPED → DELIVERED
  *
  * Run:  npm run integration:state-machine
+ * Try it: https://footprintjs.github.io/footprint-playground/samples/state-machine
  */
 
 import {
@@ -86,12 +87,12 @@ const fsm = new OrderStateMachine()
       scope.setValue('items', order.items);
       allInStock = order.items.every((item) => item.qty <= 100);
       scope.setValue('allInStock', allInStock);
-    })
+    }, 'check-inventory')
       .addFunction('CheckAddress', async (scope: ScopeFacade) => {
         scope.setValue('shippingAddress', order.shippingAddress);
         addressValid = order.shippingAddress.length > 5;
         scope.setValue('addressValid', addressValid);
-      })
+      }, 'check-address')
       .build();
 
     await new FlowChartExecutor(chart, scopeFactory).run();
@@ -106,13 +107,13 @@ const fsm = new OrderStateMachine()
     const chart = flowChart('CalculateTotal', async (scope: ScopeFacade) => {
       total = order.items.reduce((sum, i) => sum + i.price * i.qty, 0);
       scope.setValue('total', total);
-    })
+    }, 'calculate-total')
       .addFunction('ChargePayment', async (scope: ScopeFacade) => {
         await new Promise((r) => setTimeout(r, 30)); // simulate payment gateway
         paymentId = `PAY-${Date.now()}`;
         scope.setValue('paymentId', paymentId);
         scope.setValue('charged', total);
-      })
+      }, 'charge-payment')
       .build();
 
     await new FlowChartExecutor(chart, scopeFactory).run();
@@ -129,13 +130,13 @@ const fsm = new OrderStateMachine()
       trackingNumber = `TRK-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
       scope.setValue('trackingNumber', trackingNumber);
       scope.setValue('labelAddress', order.shippingAddress);
-    })
+    }, 'create-label')
       .addFunction('DispatchCarrier', async (scope: ScopeFacade) => {
         carrier = 'FastShip';
         scope.setValue('carrier', carrier);
         scope.setValue('estimatedDays', 3);
         scope.setValue('dispatchStatus', `Dispatched ${trackingNumber} via ${carrier}`);
-      })
+      }, 'dispatch-carrier')
       .build();
 
     await new FlowChartExecutor(chart, scopeFactory).run();

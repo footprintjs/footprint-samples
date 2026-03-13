@@ -5,17 +5,11 @@
  * The scope proxy validates types at runtime.
  *
  * Run:  npm run feature:typed-scope
+ * Try it: https://footprintjs.github.io/footprint-playground/samples/typed-scope
  */
 
 import { z } from 'zod';
-import {
-  defineScopeFromZod,
-  FlowChartBuilder,
-  FlowChartExecutor,
-  ScopeFacade,
-  NarrativeRecorder,
-  CombinedNarrativeBuilder,
-} from 'footprint';
+import { defineScopeFromZod, FlowChartBuilder, FlowChartExecutor, ScopeFacade } from 'footprint';
 
 (async () => {
 
@@ -31,47 +25,43 @@ const PatientScope = defineScopeFromZod(
   }),
 );
 
-// ── Stage functions use typed getters ───────────────────────────────────
+// ── Stage functions ─────────────────────────────────────────────────────
+
+const intake = async (scope: ScopeFacade) => {
+  scope.setValue('patientName', 'Jane Doe');
+  scope.setValue('temperature', 39.2);
+  scope.setValue('unit', 'celsius');
+};
+
+const convertTemp = async (scope: ScopeFacade) => {
+  const temp = scope.getValue('temperature') as number;
+  const unit = scope.getValue('unit') as string;
+  if (unit === 'celsius') {
+    scope.setValue('temperatureF', temp * 1.8 + 32);
+  }
+};
+
+const diagnose = async (scope: ScopeFacade) => {
+  const tempF = scope.getValue('temperatureF') as number;
+  const name = scope.getValue('patientName') as string;
+  const diagnosis = tempF > 100.4 ? 'Fever detected' : 'Normal';
+  scope.setValue('diagnosis', `${name}: ${diagnosis} (${tempF.toFixed(1)}°F)`);
+};
+
+// ── Flowchart ───────────────────────────────────────────────────────────
 
 const chart = new FlowChartBuilder()
   .setEnableNarrative()
-  .start('Intake', async (scope: ScopeFacade) => {
-    scope.setValue('patientName', 'Jane Doe');
-    scope.setValue('temperature', 39.2);
-    scope.setValue('unit', 'celsius');
-  })
-  .addFunction('ConvertTemp', async (scope: ScopeFacade) => {
-    const temp = scope.getValue('temperature') as number;
-    const unit = scope.getValue('unit') as string;
-    if (unit === 'celsius') {
-      scope.setValue('temperatureF', temp * 1.8 + 32);
-    }
-  })
-  .addFunction('Diagnose', async (scope: ScopeFacade) => {
-    const tempF = scope.getValue('temperatureF') as number;
-    const name = scope.getValue('patientName') as string;
-    const diagnosis = tempF > 100.4 ? 'Fever detected' : 'Normal';
-    scope.setValue('diagnosis', `${name}: ${diagnosis} (${tempF.toFixed(1)}°F)`);
-  })
+  .start('Intake', intake, 'intake')
+  .addFunction('ConvertTemp', convertTemp, 'convert-temp')
+  .addFunction('Diagnose', diagnose, 'diagnose')
   .build();
 
-// ── Run with narrative ──────────────────────────────────────────────────
+// ── Run ─────────────────────────────────────────────────────────────────
 
-const recorder = new NarrativeRecorder({ id: 'patient', detail: 'full' });
-
-const scopeFactory = (ctx: any, stageName: string) => {
-  const scope = new ScopeFacade(ctx, stageName);
-  scope.attachRecorder(recorder);
-  return scope;
-};
-
-const executor = new FlowChartExecutor(chart, scopeFactory);
+const executor = new FlowChartExecutor(chart);
 await executor.run();
 
-const flowNarrative = executor.getFlowNarrative();
-const combined = new CombinedNarrativeBuilder();
-const narrative = combined.build(flowNarrative, recorder);
-
 console.log('=== Typed Scope (Zod) ===\n');
-narrative.forEach((line) => console.log(`  ${line}`));
+executor.getNarrative().forEach((line) => console.log(`  ${line}`));
 })().catch(console.error);

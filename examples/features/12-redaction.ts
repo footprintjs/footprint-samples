@@ -8,6 +8,7 @@
  * but the runtime still gets the real value.
  *
  * Run:  npm run feature:redaction
+ * Try it: https://footprintjs.github.io/footprint-playground/samples/redaction
  */
 
 import {
@@ -36,7 +37,7 @@ import {
     scope.setValue('password', 'P@ssw0rd!S3cret', true);
     scope.setValue('ssn', '123-45-6789', true);
     scope.setValue('apiKey', 'sk-live-abc123xyz789', true);
-  })
+  }, 'collect-credentials')
     .addFunction('Authenticate', async (scope: ScopeFacade) => {
       // Runtime gets the REAL values — business logic works normally
       const password = scope.getValue('password') as string;
@@ -44,13 +45,13 @@ import {
 
       scope.setValue('authenticated', password.length > 8 && apiKey.startsWith('sk-'));
       scope.setValue('tokenHash', 'sha256:a1b2c3d4e5f6', true); // also redacted
-    })
+    }, 'authenticate')
     .addFunction('Authorize', async (scope: ScopeFacade) => {
       const authenticated = scope.getValue('authenticated') as boolean;
       const userId = scope.getValue('userId') as string;
       scope.setValue('permissions', authenticated ? ['read', 'write'] : ['read']);
       scope.setValue('sessionToken', `sess-${userId}-${Date.now()}`, true);
-    })
+    }, 'authorize')
     .setEnableNarrative()
     .build();
 
@@ -73,7 +74,7 @@ import {
     scope.setValue('cvv', '123', true);
     scope.setValue('amount', 99.99);
     scope.setValue('currency', 'USD');
-  })
+  }, 'process-payment')
     .build();
 
   const scopeFactory = (ctx: any, stageName: string) => {
@@ -145,14 +146,14 @@ import {
     scope.setValue('taxId', '987-65-4321', true);
     scope.setValue('address', '123 Main St');
     scope.setValue('bankAccount', 'IBAN-DE89370400440532013000', true);
-  })
+  }, 'kyc')
     .addFunction('Verify', async (scope: ScopeFacade) => {
       // These reads trigger onRead — PII reads are flagged
       scope.getValue('taxId');
       scope.getValue('bankAccount');
       scope.getValue('fullName');
       scope.setValue('verified', true);
-    })
+    }, 'verify')
     .build();
 
   const scopeFactory3 = (ctx: any, stageName: string) => {
@@ -190,7 +191,7 @@ import {
     console.log('  After delete + re-set without redact:');
     console.log(`    Runtime getValue: "${scope.getValue('token')}"`);
     console.log('    Recorders now see the real value (no longer redacted)');
-  })
+  }, 'lifecycle')
     .build();
 
   const writeEvents: WriteEvent[] = [];
@@ -252,14 +253,14 @@ import {
     ps.setField('ssn', '987-65-4321');           // auto-redacted by config
     ps.setField('diagnosis', 'Seasonal allergies');
     ps.setField('medicalRecord', 'MR-2024-1234'); // auto-redacted by config
-  })
+  }, 'intake')
     .addFunction('Review', async (scope: ScopeFacade) => {
       const ps = scope as PatientScope;
       // Runtime still gets real values via typed getters
       console.log(`  Reviewing patient: ${ps.patientName}`);
       console.log(`  SSN (runtime): ${ps.ssn}`);
       console.log(`  Diagnosis: ${ps.diagnosis}`);
-    })
+    }, 'review')
     .setEnableNarrative()
     .build();
 
@@ -296,13 +297,13 @@ import {
       bloodType: 'O+',
       address: { street: '123 Main St', city: 'LA', zip: '90210' },
     });
-  })
+  }, 'register')
     .addFunction('Process', async (scope: ScopeFacade) => {
       // Runtime gets real values — business logic works normally
       const ssn = scope.getValue('ssn') as string;
       const patient = scope.getValue('patient') as Record<string, unknown>;
       scope.setValue('verified', ssn.length > 0 && patient.name !== undefined);
-    })
+    }, 'process')
     .setEnableNarrative()
     .build();
 

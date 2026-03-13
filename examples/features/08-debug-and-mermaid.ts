@@ -5,6 +5,7 @@
  * - toMermaid() generates a Mermaid flowchart diagram from the builder
  *
  * Run:  npm run feature:debug
+ * Try it: https://footprintjs.github.io/footprint-playground/samples/debug-mermaid
  */
 
 import {
@@ -24,20 +25,20 @@ const builder = new FlowChartBuilder()
   .start('Ingest', async (scope: ScopeFacade) => {
     scope.setValue('rawText', 'The quick brown fox jumps over the lazy dog');
     scope.setValue('source', 'user-input');
-  })
+  }, 'ingest')
   .addFunction('Tokenize', async (scope: ScopeFacade) => {
     const text = scope.getValue('rawText') as string;
     const tokens = text.toLowerCase().split(/\s+/);
     scope.setValue('tokens', tokens);
     scope.setValue('tokenCount', tokens.length);
-  })
+  }, 'tokenize')
   .addFunction('Analyze', async (scope: ScopeFacade) => {
     const tokens = scope.getValue('tokens') as string[];
     const unique = [...new Set(tokens)];
     scope.setValue('uniqueTokens', unique);
     scope.setValue('uniqueCount', unique.length);
     scope.setValue('duplicateRate', 1 - unique.length / tokens.length);
-  });
+  }, 'analyze');
 
 // ── Generate Mermaid diagram BEFORE build ────────────────────────────────
 

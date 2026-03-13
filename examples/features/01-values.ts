@@ -7,6 +7,7 @@
  * - Arrays
  *
  * Run:  npm run feature:values
+ * Try it: https://footprintjs.github.io/footprint-playground/samples/values
  */
 
 import { flowChart, FlowChartExecutor, ScopeFacade } from 'footprint';
@@ -28,7 +29,7 @@ const chart = flowChart('SetValues', async (scope: ScopeFacade) => {
 
   // Array
   scope.setValue('tags', ['admin', 'verified']);
-})
+}, 'set-values')
   .addFunction('ReadValues', async (scope: ScopeFacade) => {
     const name = scope.getValue('name');
     const age = scope.getValue('age');
@@ -40,7 +41,7 @@ const chart = flowChart('SetValues', async (scope: ScopeFacade) => {
     console.log('Object:', profile);
     console.log('Nested:', profile.address.city);
     console.log('Array:', tags);
-  })
+  }, 'read-values')
   .build();
 
 const executor = new FlowChartExecutor(chart);

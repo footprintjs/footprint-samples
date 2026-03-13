@@ -6,6 +6,7 @@
  * by implementing the Recorder interface.
  *
  * Run:  npm run feature:recorders
+ * Try it: https://footprintjs.github.io/footprint-playground/samples/recorders
  */
 
 import {
@@ -56,16 +57,16 @@ const chart = flowChart('Input', async (scope: ScopeFacade) => {
   scope.setValue('userId', 'u-123');
   scope.setValue('action', 'purchase');
   scope.setValue('amount', 99.99);
-})
+}, 'input')
   .addFunction('Validate', async (scope: ScopeFacade) => {
     const amount = scope.getValue('amount') as number;
     scope.setValue('valid', amount > 0 && amount < 10_000);
-  })
+  }, 'validate')
   .addFunction('Process', async (scope: ScopeFacade) => {
     const valid = scope.getValue('valid') as boolean;
     const userId = scope.getValue('userId') as string;
     scope.setValue('result', valid ? `Processed for ${userId}` : 'Rejected');
-  })
+  }, 'process')
   .build();
 
 const scopeFactory = (ctx: any, stageName: string) => {

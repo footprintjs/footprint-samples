@@ -7,6 +7,7 @@
  *   3. Extending NarrativeFlowRecorder (custom loop strategy)
  *
  * Run:  npm run fr:custom
+ * Try it: https://footprintjs.github.io/footprint-playground/samples/custom-recorder
  */
 
 import {
@@ -89,17 +90,17 @@ function buildChart() {
   return flowChart('Init', async (scope: ScopeFacade) => {
     scope.setValue('counter', 0);
     scope.setValue('target', 15);
-  })
+  }, 'init')
     .addFunction('Process', async (scope: ScopeFacade) => {
       const counter = scope.getValue('counter') as number;
       scope.setValue('counter', counter + 1);
       if (counter + 1 < (scope.getValue('target') as number)) {
-        return { name: 'loop-back', next: { name: 'Process', id: 'Process' } };
+        return { name: 'loop-back', next: { name: 'Process', id: 'process' } };
       }
-    }, 'Process')
+    }, 'process')
     .addFunction('Done', async (scope: ScopeFacade) => {
       scope.setValue('result', 'completed');
-    })
+    }, 'done')
     .build();
 }
 

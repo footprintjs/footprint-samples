@@ -10,6 +10,7 @@
  * - Raw JSON Schema works too (no Zod dependency required)
  *
  * Run:  npm run feature:contract
+ * Try it: https://footprintjs.github.io/footprint-playground/samples/contract-openapi
  */
 
 import { flowChart, FlowChartExecutor, ScopeFacade, defineContract } from 'footprint';
@@ -19,10 +20,15 @@ import { z } from 'zod';
   // ── Stage functions ─────────────────────────────────────────────────────
 
   const receiveOrder = async (scope: ScopeFacade) => {
-    // In a real app, input comes from readOnlyContext
-    scope.setValue('item', 'Widget Pro');
-    scope.setValue('quantity', 3);
-    scope.setValue('unitPrice', 29.99);
+    // Access runtime input via getArgs() — readonly, cannot be overwritten
+    const { item, quantity, unitPrice } = scope.getArgs<{
+      item: string;
+      quantity: number;
+      unitPrice: number;
+    }>();
+    scope.setValue('item', item);
+    scope.setValue('quantity', quantity);
+    scope.setValue('unitPrice', unitPrice);
   };
 
   const calculateTotal = async (scope: ScopeFacade) => {
@@ -52,10 +58,10 @@ import { z } from 'zod';
 
   // ── Build the flowchart ─────────────────────────────────────────────────
 
-  const chart = flowChart('ReceiveOrder', receiveOrder)
+  const chart = flowChart('ReceiveOrder', receiveOrder, 'receive-order')
     .setEnableNarrative()
-    .addFunction('CalculateTotal', calculateTotal)
-    .addDeciderFunction('ClassifyOrder', classifyOrder as any)
+    .addFunction('CalculateTotal', calculateTotal, 'calculate-total')
+    .addDeciderFunction('ClassifyOrder', classifyOrder as any, 'classify-order')
       .addFunctionBranch('large', 'ProcessLargeOrder', processLarge)
       .addFunctionBranch('small', 'ProcessSmallOrder', processSmall)
       .setDefault('small')
@@ -106,7 +112,9 @@ import { z } from 'zod';
   console.log('\n=== Pipeline Execution ===\n');
 
   const executor = new FlowChartExecutor(chart);
-  await executor.run();
+  await executor.run({
+    input: { item: 'Widget Pro', quantity: 3, unitPrice: 29.99 },
+  });
 
   const narrative = executor.getNarrative();
   console.log('Narrative:');

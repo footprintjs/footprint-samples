@@ -10,6 +10,7 @@
  * 3. Typed scopeFactory — with a ScopeFacade subclass
  *
  * Run:  npm run feature:scope-factory
+ * Try it: https://footprintjs.github.io/footprint-playground/samples/optional-scope-factory
  */
 
 import {
@@ -17,7 +18,6 @@ import {
   FlowChartExecutor,
   ScopeFacade,
   NarrativeRecorder,
-  CombinedNarrativeBuilder,
 } from 'footprint';
 
 (async () => {
@@ -30,12 +30,12 @@ console.log('=== Pattern 1: No scopeFactory (default ScopeFacade) ===\n');
 const chart1 = flowChart('Calculate', async (scope: ScopeFacade) => {
   scope.setValue('price', 49.99);
   scope.setValue('quantity', 3);
-})
+}, 'calculate')
   .addFunction('Total', async (scope: ScopeFacade) => {
     const price = scope.getValue('price') as number;
     const qty = scope.getValue('quantity') as number;
     scope.setValue('total', price * qty);
-  })
+  }, 'total')
   .setEnableNarrative()
   .build();
 
@@ -62,12 +62,12 @@ const customFactory = (ctx: any, stageName: string) => {
 const chart2 = flowChart('Receive', async (scope: ScopeFacade) => {
   scope.setValue('orderId', 'ORD-42');
   scope.setValue('items', ['Widget', 'Gadget']);
-})
+}, 'receive')
   .addFunction('Process', async (scope: ScopeFacade) => {
     const items = scope.getValue('items') as string[];
     scope.setValue('itemCount', items.length);
     scope.setValue('status', 'processed');
-  })
+  }, 'process')
   .build();
 
 const executor2 = new FlowChartExecutor(chart2, customFactory);  // ← custom factory
@@ -75,10 +75,6 @@ await executor2.run();
 
 console.log('  Result:', executor2.getSnapshot().sharedState.status);
 console.log('  Recorder captured', recorder.getStageData().size, 'stages');
-
-const combined = new CombinedNarrativeBuilder();
-const narrative2 = combined.build([], recorder);
-narrative2.forEach((line) => console.log(`    ${line}`));
 
 // ── Pattern 3: Typed ScopeFacade subclass ───────────────────────────
 // Use when you want type-safe getters/setters on your scope.
@@ -100,11 +96,11 @@ const chart3 = flowChart('CreateOrder', async (scope: OrderScope) => {
   // The typed getters work because they call getValue() internally.
   scope.setValue('orderId', 'ORD-99');
   scope.setValue('total', 299.97);
-})
+}, 'create-order')
   .addFunction('Confirm', async (scope: OrderScope) => {
     // Typed getters — clean, type-safe reads
     console.log(`  Order ${scope.orderId}: $${scope.total}`);
-  })
+  }, 'confirm')
   .build();
 
 const executor3 = new FlowChartExecutor(chart3, typedFactory);  // ← typed factory

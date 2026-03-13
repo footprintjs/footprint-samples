@@ -3,54 +3,82 @@
  *
  * The simplest flow — stages execute one after another.
  *
- *   A → B → C
+ *   FetchUser → EnrichProfile → SendWelcomeEmail
  *
- * Run:  npm run flow:linear
+ * In the playground, edit the INPUT panel to change the user data.
+ * Try it: https://footprintjs.github.io/footprint-playground/samples/linear
  */
 
-import {
-  flowChart,
-  FlowChartExecutor,
-  ScopeFacade,
-  NarrativeRecorder,
-  CombinedNarrativeBuilder,
-} from 'footprint';
+import { flowChart, FlowChartExecutor, ScopeFacade } from 'footprint';
 
 (async () => {
 
-const recorder = new NarrativeRecorder({ id: 'linear', detail: 'full' });
+// ── Input ───────────────────────────────────────────────────────────────
+// INPUT is provided via the playground's JSON input panel.
+// When running standalone, fall back to default values.
 
-const chart = flowChart('FetchUser', async (scope: ScopeFacade) => {
-  scope.setValue('userId', 42);
-  scope.setValue('username', 'alice');
-})
-  .setEnableNarrative()
-  .addFunction('EnrichProfile', async (scope: ScopeFacade) => {
-    const username = scope.getValue('username') as string;
-    scope.setValue('displayName', username.charAt(0).toUpperCase() + username.slice(1));
-    scope.setValue('role', 'admin');
-  })
-  .addFunction('FormatOutput', async (scope: ScopeFacade) => {
-    const displayName = scope.getValue('displayName') as string;
-    const role = scope.getValue('role') as string;
-    scope.setValue('greeting', `Welcome back, ${displayName} (${role})!`);
-  })
-  .build();
+const input: { userId: number } =
+  (typeof INPUT !== 'undefined' && INPUT) || { userId: 42 };
 
-const scopeFactory = (ctx: any, stageName: string) => {
-  const scope = new ScopeFacade(ctx, stageName);
-  scope.attachRecorder(recorder);
-  return scope;
+// ── Mock Database ───────────────────────────────────────────────────────
+
+const userDB = new Map([
+  [42, { username: 'alice', email: 'alice@example.com', joinedAt: '2024-01-15' }],
+  [99, { username: 'bob', email: 'bob@example.com', joinedAt: '2025-06-01' }],
+]);
+
+const emailLog: string[] = [];
+
+// ── Stage Functions ─────────────────────────────────────────────────────
+
+const fetchUser = async (scope: ScopeFacade) => {
+  const { userId } = scope.getArgs<{ userId: number }>();
+  const user = userDB.get(userId);
+  if (!user) throw new Error(`User #${userId} not found`);
+  scope.setValue('user', user);
 };
 
-const executor = new FlowChartExecutor(chart, scopeFactory);
-await executor.run();
+const enrichProfile = async (scope: ScopeFacade) => {
+  const user = scope.getValue('user') as any;
+  const displayName = user.username.charAt(0).toUpperCase() + user.username.slice(1);
+  const daysSinceJoin = Math.floor(
+    (Date.now() - new Date(user.joinedAt).getTime()) / 86_400_000,
+  );
+  scope.setValue('displayName', displayName);
+  scope.setValue('memberDays', daysSinceJoin);
+  scope.setValue('tier', daysSinceJoin > 365 ? 'veteran' : 'newcomer');
+};
 
-const narrative = new CombinedNarrativeBuilder().build(
-  executor.getFlowNarrative(),
-  recorder,
-);
+const sendWelcomeEmail = async (scope: ScopeFacade) => {
+  const displayName = scope.getValue('displayName') as string;
+  const tier = scope.getValue('tier') as string;
+  const user = scope.getValue('user') as any;
+
+  const message =
+    tier === 'veteran'
+      ? `Welcome back, ${displayName}! Thanks for being a loyal member.`
+      : `Welcome, ${displayName}! We're glad you're here.`;
+
+  emailLog.push(`→ ${user.email}: ${message}`);
+  scope.setValue('emailSent', true);
+  scope.setValue('greeting', message);
+};
+
+// ── Flowchart ───────────────────────────────────────────────────────────
+
+const chart = flowChart('FetchUser', fetchUser, 'fetch-user')
+  .setEnableNarrative()
+  .addFunction('EnrichProfile', enrichProfile, 'enrich-profile')
+  .addFunction('SendWelcomeEmail', sendWelcomeEmail, 'send-welcome-email')
+  .build();
+
+// ── Run ─────────────────────────────────────────────────────────────────
+
+const executor = new FlowChartExecutor(chart);
+await executor.run({ input });
 
 console.log('=== Linear Pipeline ===\n');
-narrative.forEach((line) => console.log(`  ${line}`));
+executor.getNarrative().forEach((line) => console.log(`  ${line}`));
+console.log('\n--- Email Log ---');
+emailLog.forEach((line) => console.log(`  ${line}`));
 })().catch(console.error);

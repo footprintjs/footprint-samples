@@ -11,19 +11,12 @@
  * - Safety limits (cost/token budget exceeded)
  *
  * Run:  npm run feature:break
+ * Try it: https://footprintjs.github.io/footprint-playground/samples/break-fn
  */
 
-import {
-  FlowChartBuilder,
-  FlowChartExecutor,
-  ScopeFacade,
-  NarrativeRecorder,
-  CombinedNarrativeBuilder,
-} from 'footprint';
+import { FlowChartBuilder, FlowChartExecutor, ScopeFacade } from 'footprint';
 
 (async () => {
-
-const recorder = new NarrativeRecorder({ id: 'break', detail: 'full' });
 
 // ── Scenario 1: Validation gate — stop pipeline on bad input ────────────
 
@@ -41,40 +34,27 @@ const validationChart = new FlowChartBuilder()
       scope.setValue('reason', `Amount $${amount.toLocaleString()} exceeds $50,000 limit`);
       breakFn(); // ← stop here, don't process further
     }
-  })
+  }, 'validate-input')
   .addFunction('ProcessPayment', async (scope: ScopeFacade) => {
     // This never runs when breakFn is called
     scope.setValue('processed', true);
     scope.setValue('transactionId', 'TXN-' + Date.now());
-  })
+  }, 'process-payment')
   .addFunction('SendConfirmation', async (scope: ScopeFacade) => {
     // This never runs either
     scope.setValue('emailSent', true);
-  })
+  }, 'send-confirmation')
   .build();
 
-const scopeFactory1 = (ctx: any, stageName: string) => {
-  const scope = new ScopeFacade(ctx, stageName);
-  scope.attachRecorder(recorder);
-  return scope;
-};
-
-const executor1 = new FlowChartExecutor(validationChart, scopeFactory1);
+const executor1 = new FlowChartExecutor(validationChart);
 await executor1.run();
 
-const narrative1 = new CombinedNarrativeBuilder().build(
-  executor1.getFlowNarrative(),
-  recorder,
-);
-
-narrative1.forEach((line) => console.log(`  ${line}`));
+executor1.getNarrative().forEach((line) => console.log(`  ${line}`));
 console.log('\n  ProcessPayment and SendConfirmation never ran.\n');
 
 // ── Scenario 2: Budget limit — stop when cost threshold is reached ──────
 
 console.log('=== Scenario 2: Budget Limit ===\n');
-
-const recorder2 = new NarrativeRecorder({ id: 'budget', detail: 'full' });
 
 const budgetChart = new FlowChartBuilder()
   .setEnableNarrative()
@@ -82,7 +62,7 @@ const budgetChart = new FlowChartBuilder()
     scope.setValue('budget', 100);
     scope.setValue('spent', 0);
     scope.setValue('items', [] as string[]);
-  })
+  }, 'init')
   .addFunction('BuyItem1', async (scope: ScopeFacade, breakFn: () => void) => {
     const spent = (scope.getValue('spent') as number) + 30;
     scope.setValue('spent', spent);
@@ -93,7 +73,7 @@ const budgetChart = new FlowChartBuilder()
       scope.setValue('budgetExhausted', true);
       breakFn();
     }
-  })
+  }, 'buy-item-1')
   .addFunction('BuyItem2', async (scope: ScopeFacade, breakFn: () => void) => {
     const spent = (scope.getValue('spent') as number) + 45;
     scope.setValue('spent', spent);
@@ -104,7 +84,7 @@ const budgetChart = new FlowChartBuilder()
       scope.setValue('budgetExhausted', true);
       breakFn();
     }
-  })
+  }, 'buy-item-2')
   .addFunction('BuyItem3', async (scope: ScopeFacade, breakFn: () => void) => {
     const spent = (scope.getValue('spent') as number) + 50;
     scope.setValue('spent', spent);
@@ -115,29 +95,18 @@ const budgetChart = new FlowChartBuilder()
       scope.setValue('budgetExhausted', true);
       breakFn();
     }
-  })
+  }, 'buy-item-3')
   .addFunction('BuyItem4', async (scope: ScopeFacade) => {
     // This won't run — budget exhausted at Item 3
     const items = scope.getValue('items') as string[];
     scope.setValue('items', [...items, 'Widget D ($25)']);
-  })
+  }, 'buy-item-4')
   .build();
 
-const scopeFactory2 = (ctx: any, stageName: string) => {
-  const scope = new ScopeFacade(ctx, stageName);
-  scope.attachRecorder(recorder2);
-  return scope;
-};
-
-const executor2 = new FlowChartExecutor(budgetChart, scopeFactory2);
+const executor2 = new FlowChartExecutor(budgetChart);
 await executor2.run();
 
-const narrative2 = new CombinedNarrativeBuilder().build(
-  executor2.getFlowNarrative(),
-  recorder2,
-);
-
-narrative2.forEach((line) => console.log(`  ${line}`));
+executor2.getNarrative().forEach((line) => console.log(`  ${line}`));
 console.log('\n  BuyItem4 never ran — budget of $100 reached at $125.\n');
 
 })().catch(console.error);

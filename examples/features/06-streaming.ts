@@ -7,6 +7,7 @@
  * This simulates an LLM generating a response token-by-token.
  *
  * Run:  npm run feature:streaming
+ * Try it: https://footprintjs.github.io/footprint-playground/samples/streaming
  */
 
 import {
@@ -52,10 +53,9 @@ const chart = new FlowChartBuilder()
     scope.setValue('patientName', 'Jane Doe');
     scope.setValue('temperature', 102.6);
     scope.setValue('unit', 'fahrenheit');
-  })
+  }, 'prepare-context')
   .addStreamingFunction(
     'GenerateSummary',  // stage name
-    'llm-summary',     // stream ID (used in onStart/onToken/onEnd)
     async (scope: ScopeFacade, _breakFn, streamCallback) => {
       const name = scope.getValue('patientName') as string;
       const temp = scope.getValue('temperature') as number;
@@ -69,12 +69,14 @@ const chart = new FlowChartBuilder()
       // Set the final result in scope
       scope.setValue('summary', llmTokens.join(''));
     },
+    'generate-summary',  // id
+    'llm-summary',       // stream ID (used in onStart/onToken/onEnd)
   )
   .addFunction('SaveReport', async (scope: ScopeFacade) => {
     const summary = scope.getValue('summary') as string;
     scope.setValue('saved', true);
     scope.setValue('reportLength', summary.length);
-  })
+  }, 'save-report')
   .build();
 
 const executor = new FlowChartExecutor(

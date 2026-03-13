@@ -4,73 +4,89 @@
  * A decider function inspects scope and returns a branch key.
  * Only the matching branch executes.
  *
- *             ┌─ "premium"  → PremiumPath
- *   Classify ─┤─ "standard" → StandardPath
- *             └─ "trial"    → TrialPath    (default)
- *
- * Run:  npm run flow:decider
+ *                   ┌─ "premium"  → ApplyLoyaltyDiscount
+ *   LoadCustomer →  ClassifyTier ─┤─ "standard" → SuggestUpgrade
+ *                   └─ "trial"    → ShowOnboarding    (default)
+ *                                           ↓
+ *                                      CalculateTotal
+ * Try it: https://footprintjs.github.io/footprint-playground/samples/decider
  */
 
-import {
-  FlowChartBuilder,
-  FlowChartExecutor,
-  ScopeFacade,
-  NarrativeRecorder,
-  CombinedNarrativeBuilder,
-} from 'footprint';
+import { FlowChartBuilder, FlowChartExecutor, ScopeFacade } from 'footprint';
 
 (async () => {
 
-const recorder = new NarrativeRecorder({ id: 'decider', detail: 'full' });
+// ── Mock Database ───────────────────────────────────────────────────────
+
+const customerDB = new Map([
+  ['C-42', { name: 'Charlie', plan: 'premium', totalSpend: 4_200, since: '2022-03-01' }],
+  ['C-77', { name: 'Dana', plan: 'standard', totalSpend: 320, since: '2024-11-15' }],
+  ['C-99', { name: 'Eve', plan: 'trial', totalSpend: 0, since: '2025-02-28' }],
+]);
+
+// ── Stage Functions ─────────────────────────────────────────────────────
+
+const loadCustomer = async (scope: ScopeFacade) => {
+  const customer = customerDB.get('C-42')!;
+  scope.setValue('customer', customer);
+  scope.setValue('cartAmount', 150);
+};
+
+const classifyTier = (scope: ScopeFacade): string => {
+  const customer = scope.getValue('customer') as any;
+  if (customer.plan === 'premium' && customer.totalSpend > 1000) return 'premium';
+  if (customer.plan === 'standard') return 'standard';
+  return 'trial';
+};
+
+const applyLoyaltyDiscount = async (scope: ScopeFacade) => {
+  const customer = scope.getValue('customer') as any;
+  const years = new Date().getFullYear() - new Date(customer.since).getFullYear();
+  const discountPct = Math.min(years * 5, 25); // 5% per year, max 25%
+  scope.setValue('discountPct', discountPct);
+  scope.setValue(
+    'message',
+    `Thank you for ${years} years with us! ${discountPct}% loyalty discount applied.`,
+  );
+};
+
+const suggestUpgrade = async (scope: ScopeFacade) => {
+  scope.setValue('discountPct', 5);
+  scope.setValue('message', 'Upgrade to Premium for up to 25% off every order.');
+};
+
+const showOnboarding = async (scope: ScopeFacade) => {
+  scope.setValue('discountPct', 10);
+  scope.setValue('message', 'Welcome! Enjoy 10% off your first order.');
+};
+
+const calculateTotal = async (scope: ScopeFacade) => {
+  const cartAmount = scope.getValue('cartAmount') as number;
+  const discountPct = scope.getValue('discountPct') as number;
+  const finalAmount = Math.round(cartAmount * (1 - discountPct / 100) * 100) / 100;
+  scope.setValue('finalAmount', finalAmount);
+  console.log(`  Total: $${cartAmount} → $${finalAmount} (${discountPct}% off)`);
+};
+
+// ── Flowchart ───────────────────────────────────────────────────────────
 
 const chart = new FlowChartBuilder()
   .setEnableNarrative()
-  .start('LoadUser', async (scope: ScopeFacade) => {
-    scope.setValue('user', { name: 'Charlie', plan: 'premium', spend: 500 });
-  })
-  .addDeciderFunction('ClassifyUser', ((scope: ScopeFacade): string => {
-    const user = scope.getValue('user') as any;
-    if (user.plan === 'premium' && user.spend > 100) return 'premium';
-    if (user.plan === 'standard') return 'standard';
-    return 'trial';
-  }) as any)
-    .addFunctionBranch('premium', 'PremiumPath', async (scope: ScopeFacade) => {
-      scope.setValue('discount', 20);
-      scope.setValue('message', 'Thank you for being a premium member!');
-    })
-    .addFunctionBranch('standard', 'StandardPath', async (scope: ScopeFacade) => {
-      scope.setValue('discount', 5);
-      scope.setValue('message', 'Consider upgrading to premium.');
-    })
-    .addFunctionBranch('trial', 'TrialPath', async (scope: ScopeFacade) => {
-      scope.setValue('discount', 0);
-      scope.setValue('message', 'Welcome! Explore our plans.');
-    })
+  .start('LoadCustomer', loadCustomer, 'load-customer')
+  .addDeciderFunction('ClassifyTier', classifyTier as any, 'classify-tier')
+    .addFunctionBranch('premium', 'ApplyLoyaltyDiscount', applyLoyaltyDiscount)
+    .addFunctionBranch('standard', 'SuggestUpgrade', suggestUpgrade)
+    .addFunctionBranch('trial', 'ShowOnboarding', showOnboarding)
     .setDefault('trial')
     .end()
-  .addFunction('ApplyDiscount', async (scope: ScopeFacade) => {
-    await new Promise((r) => setTimeout(r, 15)); // simulate discount calculation API
-    const user = scope.getValue('user') as any;
-    const discount = scope.getValue('discount') as number;
-    const finalAmount = user.spend * (1 - discount / 100);
-    scope.setValue('finalAmount', finalAmount);
-  })
+  .addFunction('CalculateTotal', calculateTotal, 'calculate-total')
   .build();
 
-const scopeFactory = (ctx: any, stageName: string) => {
-  const scope = new ScopeFacade(ctx, stageName);
-  scope.attachRecorder(recorder);
-  return scope;
-};
+// ── Run ─────────────────────────────────────────────────────────────────
 
-const executor = new FlowChartExecutor(chart, scopeFactory);
+const executor = new FlowChartExecutor(chart);
 await executor.run();
 
-const narrative = new CombinedNarrativeBuilder().build(
-  executor.getFlowNarrative(),
-  recorder,
-);
-
 console.log('=== Decider (Conditional Branching) ===\n');
-narrative.forEach((line) => console.log(`  ${line}`));
+executor.getNarrative().forEach((line) => console.log(`  ${line}`));
 })().catch(console.error);

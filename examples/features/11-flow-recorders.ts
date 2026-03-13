@@ -10,6 +10,7 @@
  *   3. SeparateNarrativeFlowRecorder for split loop detail
  *
  * Run:  npm run feature:flow-recorders
+ * Try it: https://footprintjs.github.io/footprint-playground/samples/flow-recorders
  */
 
 import {
@@ -32,7 +33,7 @@ function buildLoopChart(iterations = 20) {
   return flowChart('Init', async (scope: ScopeFacade) => {
     scope.setValue('counter', 0);
     scope.setValue('target', iterations);
-  })
+  }, 'init')
     .addFunction('Process', async (scope: ScopeFacade) => {
       const counter = scope.getValue('counter') as number;
       scope.setValue('counter', counter + 1);
@@ -40,9 +41,9 @@ function buildLoopChart(iterations = 20) {
       // Dynamic continuation: return a StageNode with `next` pointing back
       // This fires the engine's onLoop event that FlowRecorders observe
       if (counter + 1 < (scope.getValue('target') as number)) {
-        return { name: 'loop-back', next: { name: 'Process', id: 'Process' } };
+        return { name: 'loop-back', next: { name: 'Process', id: 'process' } };
       }
-    }, 'Process')
+    }, 'process')
     .build();
 }
 

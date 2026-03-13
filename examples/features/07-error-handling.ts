@@ -8,6 +8,7 @@
  * - Custom error recorder for production alerting
  *
  * Run:  npm run feature:errors
+ * Try it: https://footprintjs.github.io/footprint-playground/samples/error-handling
  */
 
 import {
@@ -59,7 +60,7 @@ const chart = new FlowChartBuilder()
     await new Promise((r) => setTimeout(r, 15));
     scope.setValue('userId', 'user-42');
     scope.setValue('payload', { action: 'transfer', amount: 50000 });
-  })
+  }, 'validate-input')
   .addFunction('CheckLimits', async (scope: ScopeFacade) => {
     const payload = scope.getValue('payload') as any;
     await new Promise((r) => setTimeout(r, 25));
@@ -70,11 +71,11 @@ const chart = new FlowChartBuilder()
       );
     }
     scope.setValue('limitExceeded', false);
-  })
+  }, 'check-limits')
   .addFunction('ExecuteTransfer', async (scope: ScopeFacade) => {
     // This never runs
     scope.setValue('status', 'completed');
-  })
+  }, 'execute-transfer')
   .build();
 
 const scopeFactory = (ctx: any, stageName: string) => {
@@ -131,12 +132,12 @@ const chart2 = new FlowChartBuilder()
       scope.setValue('source', 'cache');
       scope.setValue('data', { cached: true, score: 720 });
     }
-  })
+  }, 'fetch-primary')
   .addFunction('Process', async (scope: ScopeFacade) => {
     const source = scope.getValue('source') as string;
     const data = scope.getValue('data') as any;
     scope.setValue('result', `Processed from ${source}: score=${data.score}`);
-  })
+  }, 'process')
   .build();
 
 const executor2 = new FlowChartExecutor(chart2);
