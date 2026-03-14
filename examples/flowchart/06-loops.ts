@@ -84,7 +84,7 @@ const chart = flowChart('InitRetry', initRetry, 'init-retry')
   .setEnableNarrative()
   .addFunction('CallAPI', callAPI, 'call-api')
   .addFunction('EvaluateResult', evaluateResult, 'evaluate-result')
-  .loopTo('CallAPI')
+  .loopTo('call-api')
   .build();
 
 // ── Run ─────────────────────────────────────────────────────────────────
