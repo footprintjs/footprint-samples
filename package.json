@@ -31,6 +31,8 @@
     "flow:selector": "npx tsx examples/flowchart/04-selector.ts",
     "flow:subflow": "npx tsx examples/flowchart/05-subflow.ts",
     "flow:loops": "npx tsx examples/flowchart/06-loops.ts",
+    "flow:structural-subflow": "npx tsx examples/flowchart/07-structural-subflow.ts",
+    "flow:lazy-subflow": "npx tsx examples/flowchart/08-lazy-subflow.ts",
     "errors:input-safety": "npx tsx examples/errors/input-safety.ts",
     "errors:structured": "npx tsx examples/errors/structured-error-flow.ts",
     "integration:state-machine": "npx tsx examples/integrations/state-machine.ts",
