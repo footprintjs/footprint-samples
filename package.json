@@ -36,6 +36,9 @@
     "errors:input-safety": "npx tsx examples/errors/input-safety.ts",
     "errors:structured": "npx tsx examples/errors/structured-error-flow.ts",
     "integration:state-machine": "npx tsx examples/integrations/state-machine.ts",
+    "integration:datadog": "npx tsx examples/integrations/datadog-exporter.ts",
+    "integration:otel": "npx tsx examples/integrations/opentelemetry-exporter.ts",
+    "integration:elastic": "npx tsx examples/integrations/elastic-exporter.ts",
     "all": "npm run quick-start && npm run feature:values && npm run feature:narrative && npm run feature:recorders && npm run feature:typed-scope && npm run feature:metrics && npm run feature:streaming && npm run feature:errors && npm run feature:debug && npm run feature:break && npm run feature:contract && npm run flow:linear && npm run flow:fork && npm run flow:decider && npm run flow:selector && npm run flow:subflow && npm run flow:loops"
   },
   "dependencies": {
