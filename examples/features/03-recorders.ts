@@ -10,20 +10,19 @@
  */
 
 import {
-  flowChart,
+  typedFlowChart,
+  createTypedScopeFactory,
   FlowChartExecutor,
-  ScopeFacade,
   type Recorder,
   type ReadEvent,
   type WriteEvent,
   type CommitEvent,
 } from 'footprint';
 
-(async () => {
-
 // ── Custom audit recorder ───────────────────────────────────────────────
 
 class AuditRecorder implements Recorder {
+  readonly id = 'audit';
   private log: string[] = [];
 
   onWrite(event: WriteEvent): void {
@@ -34,7 +33,7 @@ class AuditRecorder implements Recorder {
 
   onRead(event: ReadEvent): void {
     this.log.push(
-      `[READ]  ${event.stageName}: ${event.key} → ${JSON.stringify(event.value)}`,
+      `[READ]  ${event.stageName}: ${event.key} -> ${JSON.stringify(event.value)}`,
     );
   }
 
@@ -49,33 +48,35 @@ class AuditRecorder implements Recorder {
   }
 }
 
-// ── Flow ────────────────────────────────────────────────────────────────
+// ── State interface ─────────────────────────────────────────────────────
+
+interface OrderState {
+  userId: string;
+  action: string;
+  amount: number;
+  valid?: boolean;
+  result?: string;
+}
+
+(async () => {
 
 const auditRecorder = new AuditRecorder();
 
-const chart = flowChart('Input', async (scope: ScopeFacade) => {
-  scope.setValue('userId', 'u-123');
-  scope.setValue('action', 'purchase');
-  scope.setValue('amount', 99.99);
+const chart = typedFlowChart<OrderState>('Input', async (scope) => {
+  scope.userId = 'u-123';
+  scope.action = 'purchase';
+  scope.amount = 99.99;
 }, 'input')
-  .addFunction('Validate', async (scope: ScopeFacade) => {
-    const amount = scope.getValue('amount') as number;
-    scope.setValue('valid', amount > 0 && amount < 10_000);
+  .addFunction('Validate', async (scope) => {
+    scope.valid = scope.amount > 0 && scope.amount < 10_000;
   }, 'validate')
-  .addFunction('Process', async (scope: ScopeFacade) => {
-    const valid = scope.getValue('valid') as boolean;
-    const userId = scope.getValue('userId') as string;
-    scope.setValue('result', valid ? `Processed for ${userId}` : 'Rejected');
+  .addFunction('Process', async (scope) => {
+    scope.result = scope.valid ? `Processed for ${scope.userId}` : 'Rejected';
   }, 'process')
   .build();
 
-const scopeFactory = (ctx: any, stageName: string) => {
-  const scope = new ScopeFacade(ctx, stageName);
-  scope.attachRecorder(auditRecorder);
-  return scope;
-};
-
-const executor = new FlowChartExecutor(chart, scopeFactory);
+const executor = new FlowChartExecutor(chart, createTypedScopeFactory<OrderState>());
+executor.attachRecorder(auditRecorder);
 await executor.run();
 
 console.log('=== Custom Audit Recorder ===\n');

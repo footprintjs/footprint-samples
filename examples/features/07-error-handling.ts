@@ -12,9 +12,9 @@
  */
 
 import {
-  FlowChartBuilder,
+  typedFlowChart,
+  createTypedScopeFactory,
   FlowChartExecutor,
-  ScopeFacade,
   MetricRecorder,
   DebugRecorder,
   type Recorder,
@@ -22,13 +22,10 @@ import {
   type WriteEvent,
 } from 'footprint';
 
-(async () => {
-
-const silentLogger = { info() {}, log() {}, debug() {}, warn() {}, error() {} };
-
 // ── Custom error alerting recorder ──────────────────────────────────────
 
 class AlertRecorder implements Recorder {
+  readonly id = 'alert';
   readonly alerts: Array<{ stage: string; error: string; timestamp: number }> = [];
   readonly writes: Array<{ stage: string; key: string }> = [];
 
@@ -45,57 +42,60 @@ class AlertRecorder implements Recorder {
   }
 }
 
-// ── Pipeline that fails mid-execution ───────────────────────────────────
+// ── State ───────────────────────────────────────────────────────────────
+
+interface TransferState {
+  userId: string;
+  payload: { action: string; amount: number };
+  limitExceeded?: boolean;
+  status?: string;
+}
+
+interface FallbackState {
+  source?: string;
+  data?: { cached: boolean; score: number };
+  result?: string;
+}
+
+(async () => {
 
 console.log('=== Error Handling Patterns ===\n');
 console.log('--- Scenario 1: Stage throws an error ---\n');
 
 const metrics = new MetricRecorder();
-const debug = new DebugRecorder('verbose');
+const debug = new DebugRecorder({ verbosity: 'verbose' });
 const alerts = new AlertRecorder();
 
-const chart = new FlowChartBuilder()
-  .setLogger(silentLogger)
-  .start('ValidateInput', async (scope: ScopeFacade) => {
-    await new Promise((r) => setTimeout(r, 15));
-    scope.setValue('userId', 'user-42');
-    scope.setValue('payload', { action: 'transfer', amount: 50000 });
-  }, 'validate-input')
-  .addFunction('CheckLimits', async (scope: ScopeFacade) => {
-    const payload = scope.getValue('payload') as any;
+const chart = typedFlowChart<TransferState>('ValidateInput', async (scope) => {
+  await new Promise((r) => setTimeout(r, 15));
+  scope.userId = 'user-42';
+  scope.payload = { action: 'transfer', amount: 50000 };
+}, 'validate-input')
+  .addFunction('CheckLimits', async (scope) => {
     await new Promise((r) => setTimeout(r, 25));
-    if (payload.amount > 10000) {
-      scope.setValue('limitExceeded', true);
+    if (scope.payload.amount > 10000) {
+      scope.limitExceeded = true;
       throw new Error(
-        `Transfer amount $${payload.amount.toLocaleString()} exceeds daily limit of $10,000`,
+        `Transfer amount $${scope.payload.amount.toLocaleString()} exceeds daily limit of $10,000`,
       );
     }
-    scope.setValue('limitExceeded', false);
+    scope.limitExceeded = false;
   }, 'check-limits')
-  .addFunction('ExecuteTransfer', async (scope: ScopeFacade) => {
-    // This never runs
-    scope.setValue('status', 'completed');
+  .addFunction('ExecuteTransfer', async (scope) => {
+    scope.status = 'completed';
   }, 'execute-transfer')
   .build();
 
-const scopeFactory = (ctx: any, stageName: string) => {
-  const scope = new ScopeFacade(ctx, stageName);
-  scope.attachRecorder(metrics);
-  scope.attachRecorder(debug);
-  scope.attachRecorder(alerts);
-  return scope;
-};
-
-const executor = new FlowChartExecutor(chart, scopeFactory);
+const executor = new FlowChartExecutor(chart, createTypedScopeFactory<TransferState>());
+executor.attachRecorder(metrics);
+executor.attachRecorder(debug);
+executor.attachRecorder(alerts);
 
 try {
   await executor.run();
-  console.log('  Pipeline completed successfully');
 } catch (err: any) {
   console.log(`  Pipeline failed: ${err.message}`);
 }
-
-// ── Inspect what happened ───────────────────────────────────────────────
 
 const m = metrics.getMetrics();
 console.log(`\n  Stages that ran (${m.stageMetrics.size} of 3):`);
@@ -105,45 +105,30 @@ for (const [stage, sm] of m.stageMetrics) {
 
 console.log(`\n  Writes before crash:`);
 for (const w of alerts.writes) {
-  console.log(`    ${w.stage} → ${w.key}`);
+  console.log(`    ${w.stage} -> ${w.key}`);
 }
 
-console.log(`\n  ExecuteTransfer: never ran — no metrics recorded`);
-
-// ── DebugRecorder entries ───────────────────────────────────────────────
-
-const entries = debug.getEntries();
-console.log(`\n  DebugRecorder: ${entries.length} entries captured`);
-console.log(`    writes: ${entries.filter((e) => e.type === 'write').length}`);
-console.log(`    reads: ${entries.filter((e) => e.type === 'read').length}`);
-
-// ── Scenario 2: Graceful degradation with try/catch inside a stage ──────
+// ── Scenario 2: Graceful degradation ──────────────────────────────────
 
 console.log('\n--- Scenario 2: Graceful error inside a stage ---\n');
 
-const chart2 = new FlowChartBuilder()
-  .start('FetchPrimary', async (scope: ScopeFacade) => {
-    try {
-      await new Promise((r) => setTimeout(r, 30));
-      // Simulate API failure
-      throw new Error('Primary API unavailable');
-    } catch {
-      // Fallback to cached data
-      scope.setValue('source', 'cache');
-      scope.setValue('data', { cached: true, score: 720 });
-    }
-  }, 'fetch-primary')
-  .addFunction('Process', async (scope: ScopeFacade) => {
-    const source = scope.getValue('source') as string;
-    const data = scope.getValue('data') as any;
-    scope.setValue('result', `Processed from ${source}: score=${data.score}`);
+const chart2 = typedFlowChart<FallbackState>('FetchPrimary', async (scope) => {
+  try {
+    await new Promise((r) => setTimeout(r, 30));
+    throw new Error('Primary API unavailable');
+  } catch {
+    scope.source = 'cache';
+    scope.data = { cached: true, score: 720 };
+  }
+}, 'fetch-primary')
+  .addFunction('Process', async (scope) => {
+    scope.result = `Processed from ${scope.source}: score=${scope.data!.score}`;
   }, 'process')
   .build();
 
-const executor2 = new FlowChartExecutor(chart2);
+const executor2 = new FlowChartExecutor(chart2, createTypedScopeFactory<FallbackState>());
 await executor2.run();
 
-console.log('  Pipeline completed with fallback — no crash');
-console.log('  Pattern: try/catch inside stage for graceful degradation');
+console.log('  Pipeline completed with fallback');
 
 })().catch(console.error);

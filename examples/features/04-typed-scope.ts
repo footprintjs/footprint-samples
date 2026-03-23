@@ -1,67 +1,52 @@
 /**
- * Feature: Typed Scope with Zod
+ * Feature: TypedScope — Type-Safe Property Access
  *
- * Define your scope schema with Zod for type-safe getters.
- * The scope proxy validates types at runtime.
+ * Define your state as a TypeScript interface. TypedScope gives you
+ * typed property access — no casts, no getValue/setValue.
  *
  * Run:  npm run feature:typed-scope
  * Try it: https://footprintjs.github.io/footprint-playground/samples/typed-scope
  */
 
-import { z } from 'zod';
-import { defineScopeFromZod, FlowChartBuilder, FlowChartExecutor, ScopeFacade } from 'footprint';
+import {
+  typedFlowChart,
+  createTypedScopeFactory,
+  FlowChartExecutor,
+} from 'footprint';
+
+// Define state as a plain TypeScript interface
+interface PatientState {
+  patientName: string;
+  temperature: number;
+  unit: 'celsius' | 'fahrenheit';
+  temperatureF?: number;
+  diagnosis?: string;
+}
 
 (async () => {
 
-// ── Define scope schema ─────────────────────────────────────────────────
-
-const PatientScope = defineScopeFromZod(
-  z.object({
-    patientName: z.string(),
-    temperature: z.number(),
-    unit: z.enum(['celsius', 'fahrenheit']),
-    temperatureF: z.number().optional(),
-    diagnosis: z.string().optional(),
-  }),
-);
-
-// ── Stage functions ─────────────────────────────────────────────────────
-
-const intake = async (scope: ScopeFacade) => {
-  scope.setValue('patientName', 'Jane Doe');
-  scope.setValue('temperature', 39.2);
-  scope.setValue('unit', 'celsius');
-};
-
-const convertTemp = async (scope: ScopeFacade) => {
-  const temp = scope.getValue('temperature') as number;
-  const unit = scope.getValue('unit') as string;
-  if (unit === 'celsius') {
-    scope.setValue('temperatureF', temp * 1.8 + 32);
-  }
-};
-
-const diagnose = async (scope: ScopeFacade) => {
-  const tempF = scope.getValue('temperatureF') as number;
-  const name = scope.getValue('patientName') as string;
-  const diagnosis = tempF > 100.4 ? 'Fever detected' : 'Normal';
-  scope.setValue('diagnosis', `${name}: ${diagnosis} (${tempF.toFixed(1)}°F)`);
-};
-
-// ── Flowchart ───────────────────────────────────────────────────────────
-
-const chart = new FlowChartBuilder()
+const chart = typedFlowChart<PatientState>('Intake', async (scope) => {
+  scope.patientName = 'Jane Doe';
+  scope.temperature = 39.2;
+  scope.unit = 'celsius';
+}, 'intake')
   .setEnableNarrative()
-  .start('Intake', intake, 'intake')
-  .addFunction('ConvertTemp', convertTemp, 'convert-temp')
-  .addFunction('Diagnose', diagnose, 'diagnose')
+  .addFunction('ConvertTemp', async (scope) => {
+    if (scope.unit === 'celsius') {
+      scope.temperatureF = scope.temperature * 1.8 + 32;
+    }
+  }, 'convert-temp')
+  .addFunction('Diagnose', async (scope) => {
+    const tempF = scope.temperatureF!;
+    const diagnosis = tempF > 100.4 ? 'Fever detected' : 'Normal';
+    scope.diagnosis = `${scope.patientName}: ${diagnosis} (${tempF.toFixed(1)}F)`;
+  }, 'diagnose')
   .build();
 
-// ── Run ─────────────────────────────────────────────────────────────────
-
-const executor = new FlowChartExecutor(chart);
+const executor = new FlowChartExecutor(chart, createTypedScopeFactory<PatientState>());
 await executor.run();
 
-console.log('=== Typed Scope (Zod) ===\n');
+console.log('=== TypedScope — Typed Property Access ===\n');
 executor.getNarrative().forEach((line) => console.log(`  ${line}`));
+console.log('\nNo casts. No getValue/setValue. Just typed properties.');
 })().catch(console.error);

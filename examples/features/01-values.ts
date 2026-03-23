@@ -1,51 +1,62 @@
 /**
- * Feature: setValue / getValue
+ * Feature: Typed Property Access
  *
- * Demonstrates storing and reading values in scope:
+ * Demonstrates storing and reading values with TypedScope<T>:
  * - Primitives (string, number, boolean)
  * - Objects and nested objects
  * - Arrays
+ * - No casts needed — everything is typed
  *
  * Run:  npm run feature:values
  * Try it: https://footprintjs.github.io/footprint-playground/samples/values
  */
 
-import { flowChart, FlowChartExecutor, ScopeFacade } from 'footprint';
-// Note: scopeFactory is optional — FlowChartExecutor defaults to ScopeFacade
+import {
+  typedFlowChart,
+  createTypedScopeFactory,
+  FlowChartExecutor,
+} from 'footprint';
+
+// Define state shape — one interface, used everywhere
+interface AppState {
+  name: string;
+  age: number;
+  active: boolean;
+  profile: {
+    email: string;
+    address: { city: string; state: string };
+  };
+  tags: string[];
+}
 
 (async () => {
 
-const chart = flowChart('SetValues', async (scope: ScopeFacade) => {
-  // Primitives
-  scope.setValue('name', 'Alice');
-  scope.setValue('age', 30);
-  scope.setValue('active', true);
+const chart = typedFlowChart<AppState>('SetValues', async (scope) => {
+  // Primitives — typed, no casts
+  scope.name = 'Alice';
+  scope.age = 30;
+  scope.active = true;
 
-  // Object — setValue accepts any type
-  scope.setValue('profile', {
+  // Object
+  scope.profile = {
     email: 'alice@example.com',
     address: { city: 'Portland', state: 'OR' },
-  });
+  };
 
   // Array
-  scope.setValue('tags', ['admin', 'verified']);
+  scope.tags = ['admin', 'verified'];
 }, 'set-values')
-  .addFunction('ReadValues', async (scope: ScopeFacade) => {
-    const name = scope.getValue('name');
-    const age = scope.getValue('age');
-    const active = scope.getValue('active');
-    const profile = scope.getValue('profile') as any;
-    const tags = scope.getValue('tags') as string[];
-
-    console.log('Primitives:', { name, age, active });
-    console.log('Object:', profile);
-    console.log('Nested:', profile.address.city);
-    console.log('Array:', tags);
+  .addFunction('ReadValues', async (scope) => {
+    // All reads are typed — no `as string` needed
+    console.log('Primitives:', { name: scope.name, age: scope.age, active: scope.active });
+    console.log('Object:', scope.profile);
+    console.log('Nested:', scope.profile.address.city);
+    console.log('Array:', scope.tags);
   }, 'read-values')
   .build();
 
-const executor = new FlowChartExecutor(chart);
+const executor = new FlowChartExecutor(chart, createTypedScopeFactory<AppState>());
 await executor.run();
 
-console.log('\nAll value types work with setValue/getValue.');
+console.log('\nAll value types work with typed property access.');
 })().catch(console.error);

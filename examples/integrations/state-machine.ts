@@ -17,7 +17,6 @@ import {
   FlowChartExecutor,
   ScopeFacade,
   NarrativeRecorder,
-  CombinedNarrativeBuilder,
 } from 'footprint';
 
 // ── Domain types ──────────────────────────────────────────────────────
@@ -67,11 +66,13 @@ class OrderStateMachine {
 // ── Shared NarrativeRecorder captures traces across ALL flowcharts ────
 
 const recorder = new NarrativeRecorder({ id: 'order', detail: 'full' });
-const scopeFactory = (ctx: any, stageName: string) => {
-  const scope = new ScopeFacade(ctx, stageName);
-  scope.attachRecorder(recorder);
-  return scope;
-};
+
+/** Helper: create an executor with the shared recorder attached. */
+function createExecutor(chart: any) {
+  const executor = new FlowChartExecutor(chart);
+  executor.attachRecorder(recorder);
+  return executor;
+}
 
 // ── Wire up the FSM with FootPrint-powered handlers ──────────────────
 // Each state handler builds and runs a small FootPrint flowchart.
@@ -95,7 +96,7 @@ const fsm = new OrderStateMachine()
       }, 'check-address')
       .build();
 
-    await new FlowChartExecutor(chart, scopeFactory).run();
+    await createExecutor(chart).run();
     context.validation = { allInStock, addressValid };
     return allInStock && addressValid ? 'VALIDATED' : 'FAILED';
   })
@@ -116,7 +117,7 @@ const fsm = new OrderStateMachine()
       }, 'charge-payment')
       .build();
 
-    await new FlowChartExecutor(chart, scopeFactory).run();
+    await createExecutor(chart).run();
     context.payment = { total, paymentId };
     return 'PAYMENT_PROCESSED';
   })
@@ -139,7 +140,7 @@ const fsm = new OrderStateMachine()
       }, 'dispatch-carrier')
       .build();
 
-    await new FlowChartExecutor(chart, scopeFactory).run();
+    await createExecutor(chart).run();
     context.shipping = { trackingNumber, carrier };
     return 'SHIPPED';
   })

@@ -1,8 +1,7 @@
 /**
- * Feature: breakFn — Early Pipeline Termination
+ * Feature: $break() — Early Pipeline Termination
  *
- * Every stage function receives `breakFn` as its second parameter.
- * Calling breakFn() stops the pipeline after the current stage completes.
+ * Call scope.$break() to stop the pipeline after the current stage completes.
  * The stage's writes are committed, but no further stages execute.
  *
  * Use cases:
@@ -14,39 +13,55 @@
  * Try it: https://footprintjs.github.io/footprint-playground/samples/break-fn
  */
 
-import { FlowChartBuilder, FlowChartExecutor, ScopeFacade } from 'footprint';
-
-(async () => {
+import {
+  typedFlowChart,
+  createTypedScopeFactory,
+  FlowChartExecutor,
+} from 'footprint';
 
 // ── Scenario 1: Validation gate — stop pipeline on bad input ────────────
 
+interface PaymentState {
+  amount: number;
+  currency: string;
+  rejected?: boolean;
+  reason?: string;
+  processed?: boolean;
+  transactionId?: string;
+  emailSent?: boolean;
+}
+
+(async () => {
+
 console.log('=== Scenario 1: Validation Gate ===\n');
 
-const validationChart = new FlowChartBuilder()
-  .setEnableNarrative()
-  .start('ValidateInput', async (scope: ScopeFacade, breakFn: () => void) => {
-    const amount = 75_000;
-    scope.setValue('amount', amount);
-    scope.setValue('currency', 'USD');
+const validationChart = typedFlowChart<PaymentState>(
+  'ValidateInput',
+  async (scope) => {
+    scope.amount = 75_000;
+    scope.currency = 'USD';
 
-    if (amount > 50_000) {
-      scope.setValue('rejected', true);
-      scope.setValue('reason', `Amount $${amount.toLocaleString()} exceeds $50,000 limit`);
-      breakFn(); // ← stop here, don't process further
+    if (scope.amount > 50_000) {
+      scope.rejected = true;
+      scope.reason = `Amount $${scope.amount.toLocaleString()} exceeds $50,000 limit`;
+      scope.$break(); // stop here, don't process further
     }
-  }, 'validate-input')
-  .addFunction('ProcessPayment', async (scope: ScopeFacade) => {
-    // This never runs when breakFn is called
-    scope.setValue('processed', true);
-    scope.setValue('transactionId', 'TXN-' + Date.now());
+  },
+  'validate-input',
+)
+  .setEnableNarrative()
+  .addFunction('ProcessPayment', async (scope) => {
+    // This never runs when $break() is called
+    scope.processed = true;
+    scope.transactionId = 'TXN-' + Date.now();
   }, 'process-payment')
-  .addFunction('SendConfirmation', async (scope: ScopeFacade) => {
+  .addFunction('SendConfirmation', async (scope) => {
     // This never runs either
-    scope.setValue('emailSent', true);
+    scope.emailSent = true;
   }, 'send-confirmation')
   .build();
 
-const executor1 = new FlowChartExecutor(validationChart);
+const executor1 = new FlowChartExecutor(validationChart, createTypedScopeFactory<PaymentState>());
 await executor1.run();
 
 executor1.getNarrative().forEach((line) => console.log(`  ${line}`));
@@ -54,56 +69,56 @@ console.log('\n  ProcessPayment and SendConfirmation never ran.\n');
 
 // ── Scenario 2: Budget limit — stop when cost threshold is reached ──────
 
+interface BudgetState {
+  budget: number;
+  spent: number;
+  items: string[];
+  budgetExhausted?: boolean;
+}
+
 console.log('=== Scenario 2: Budget Limit ===\n');
 
-const budgetChart = new FlowChartBuilder()
+const budgetChart = typedFlowChart<BudgetState>(
+  'Init',
+  async (scope) => {
+    scope.budget = 100;
+    scope.spent = 0;
+    scope.items = [];
+  },
+  'init',
+)
   .setEnableNarrative()
-  .start('Init', async (scope: ScopeFacade) => {
-    scope.setValue('budget', 100);
-    scope.setValue('spent', 0);
-    scope.setValue('items', [] as string[]);
-  }, 'init')
-  .addFunction('BuyItem1', async (scope: ScopeFacade, breakFn: () => void) => {
-    const spent = (scope.getValue('spent') as number) + 30;
-    scope.setValue('spent', spent);
-    const items = scope.getValue('items') as string[];
-    scope.setValue('items', [...items, 'Widget A ($30)']);
-
-    if (spent >= (scope.getValue('budget') as number)) {
-      scope.setValue('budgetExhausted', true);
-      breakFn();
+  .addFunction('BuyItem1', async (scope) => {
+    scope.spent = scope.spent + 30;
+    scope.items = [...scope.items, 'Widget A ($30)'];
+    if (scope.spent >= scope.budget) {
+      scope.budgetExhausted = true;
+      scope.$break();
     }
   }, 'buy-item-1')
-  .addFunction('BuyItem2', async (scope: ScopeFacade, breakFn: () => void) => {
-    const spent = (scope.getValue('spent') as number) + 45;
-    scope.setValue('spent', spent);
-    const items = scope.getValue('items') as string[];
-    scope.setValue('items', [...items, 'Widget B ($45)']);
-
-    if (spent >= (scope.getValue('budget') as number)) {
-      scope.setValue('budgetExhausted', true);
-      breakFn();
+  .addFunction('BuyItem2', async (scope) => {
+    scope.spent = scope.spent + 45;
+    scope.items = [...scope.items, 'Widget B ($45)'];
+    if (scope.spent >= scope.budget) {
+      scope.budgetExhausted = true;
+      scope.$break();
     }
   }, 'buy-item-2')
-  .addFunction('BuyItem3', async (scope: ScopeFacade, breakFn: () => void) => {
-    const spent = (scope.getValue('spent') as number) + 50;
-    scope.setValue('spent', spent);
-    const items = scope.getValue('items') as string[];
-    scope.setValue('items', [...items, 'Widget C ($50)']);
-
-    if (spent >= (scope.getValue('budget') as number)) {
-      scope.setValue('budgetExhausted', true);
-      breakFn();
+  .addFunction('BuyItem3', async (scope) => {
+    scope.spent = scope.spent + 50;
+    scope.items = [...scope.items, 'Widget C ($50)'];
+    if (scope.spent >= scope.budget) {
+      scope.budgetExhausted = true;
+      scope.$break();
     }
   }, 'buy-item-3')
-  .addFunction('BuyItem4', async (scope: ScopeFacade) => {
-    // This won't run — budget exhausted at Item 3
-    const items = scope.getValue('items') as string[];
-    scope.setValue('items', [...items, 'Widget D ($25)']);
+  .addFunction('BuyItem4', async (scope) => {
+    // Won't run — budget exhausted at Item 3
+    scope.items = [...scope.items, 'Widget D ($25)'];
   }, 'buy-item-4')
   .build();
 
-const executor2 = new FlowChartExecutor(budgetChart);
+const executor2 = new FlowChartExecutor(budgetChart, createTypedScopeFactory<BudgetState>());
 await executor2.run();
 
 executor2.getNarrative().forEach((line) => console.log(`  ${line}`));
