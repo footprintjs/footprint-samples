@@ -3,101 +3,138 @@
  *
  * When building a "graph of services" (e.g., microservice orchestrator),
  * each service is its own flowchart (subflow). With eager mounting
- * (`addSubFlowChartBranch`), ALL service trees are cloned at build time —
+ * (`addSubFlowChartBranch`), ALL service trees are cloned at build time --
  * even services that never run. At 50+ services, this is wasteful.
  *
  * `addLazySubFlowChartBranch` stores a factory function instead. The engine
  * calls it only when the branch is selected at runtime. Unselected services
- * pay zero cost — no tree cloning, no registration.
+ * pay zero cost -- no tree cloning, no registration.
  *
  * Visual difference:
- *   - Build-time spec: lazy nodes have `isLazy: true` → dashed border + cloud icon
+ *   - Build-time spec: lazy nodes have `isLazy: true` -> dashed border + cloud icon
  *   - After execution: resolved nodes look identical to eager subflows
  *
  * This example: a request router with 3 lazy service branches.
- * The selector picks 2 of 3 — only those 2 resolve.
+ * The selector picks 2 of 3 -- only those 2 resolve.
  *
- *   Router → Selector → [Auth ☁, Payment ☁, Notification ☁] → Response
+ *   Router -> Selector -> [Auth, Payment, Notification] -> Response
  *             picks ['auth','payment']
- *             → Auth resolves + executes ✓
- *             → Payment resolves + executes ✓
- *             → Notification: never resolved (zero cost)
+ *             -> Auth resolves + executes
+ *             -> Payment resolves + executes
+ *             -> Notification: never resolved (zero cost)
  */
 
-import { flowChart, FlowChartBuilder, FlowChartExecutor, ScopeFacade } from 'footprint';
+import {
+  typedFlowChart,
+  
+  FlowChartBuilder,
+  FlowChartExecutor,
+  ManifestFlowRecorder,
+  type TypedScope,
+} from 'footprint';
+
+// -- State interfaces ---------------------------------------------------------
+
+interface AuthState {
+  tokenValid: boolean;
+  authorized: boolean;
+}
+
+interface PaymentState {
+  chargeId: string;
+  paymentStatus: string;
+}
+
+interface NotificationState {
+  emailSent: boolean;
+  smsSent: boolean;
+}
+
+interface OrchestratorState {
+  requiredServices: string[];
+  requestId: string;
+  tokenValid?: boolean;
+  authorized?: boolean;
+  chargeId?: string;
+  paymentStatus?: string;
+  emailSent?: boolean;
+  smsSent?: boolean;
+  responseStatus: number;
+  responseBody: { success: boolean };
+}
 
 (async () => {
 
-// ── Define services as standalone flowcharts ─────────────────────────────
+// -- Define services as standalone flowcharts ---------------------------------
 
-const authService = flowChart(
-  'Validate Token',
-  (scope: ScopeFacade) => {
-    scope.setValue('tokenValid', true);
-  },
-  'validate-token',
-  undefined,
-  'Validate the JWT and extract claims',
-)
+const authService = new FlowChartBuilder<any, TypedScope<AuthState>>()
+  .start(
+    'Validate Token',
+    (scope) => {
+      scope.tokenValid = true;
+    },
+    'validate-token',
+    'Validate the JWT and extract claims',
+  )
   .addFunction(
     'Check Permissions',
-    (scope: ScopeFacade) => {
-      scope.setValue('authorized', true);
+    (scope) => {
+      scope.authorized = true;
     },
     'check-perms',
     'Verify user has required permissions',
   )
   .build();
 
-const paymentService = flowChart(
-  'Create Charge',
-  (scope: ScopeFacade) => {
-    scope.setValue('chargeId', 'ch_' + Date.now());
-  },
-  'create-charge',
-  undefined,
-  'Create a payment charge via Stripe',
-)
+const paymentService = new FlowChartBuilder<any, TypedScope<PaymentState>>()
+  .start(
+    'Create Charge',
+    (scope) => {
+      scope.chargeId = 'ch_' + Date.now();
+    },
+    'create-charge',
+    'Create a payment charge via Stripe',
+  )
   .addFunction(
     'Confirm Payment',
-    (scope: ScopeFacade) => {
-      scope.setValue('paymentStatus', 'confirmed');
+    (scope) => {
+      scope.paymentStatus = 'confirmed';
     },
     'confirm-payment',
     'Wait for payment confirmation webhook',
   )
   .build();
 
-const notificationService = flowChart(
-  'Send Email',
-  (scope: ScopeFacade) => {
-    scope.setValue('emailSent', true);
-  },
-  'send-email',
-  undefined,
-  'Send transactional email via SendGrid',
-)
+const notificationService = new FlowChartBuilder<any, TypedScope<NotificationState>>()
+  .start(
+    'Send Email',
+    (scope) => {
+      scope.emailSent = true;
+    },
+    'send-email',
+    'Send transactional email via SendGrid',
+  )
   .addFunction(
     'Send SMS',
-    (scope: ScopeFacade) => {
-      scope.setValue('smsSent', true);
+    (scope) => {
+      scope.smsSent = true;
     },
     'send-sms',
     'Send SMS notification via Twilio',
   )
   .build();
 
-// ── Track which resolvers are called ─────────────────────────────────────
+// -- Track which resolvers are called -----------------------------------------
 
 const resolverLog: string[] = [];
 
-// ── Orchestrator — lazy selector with 3 service branches ─────────────────
+// -- Orchestrator -- lazy selector with 3 service branches --------------------
 
-const chart = flowChart(
+const chart = typedFlowChart<OrchestratorState>(
   'Parse Request',
-  (scope: ScopeFacade) => {
-    scope.setValue('requiredServices', ['auth', 'payment']);
-    scope.setValue('requestId', 'req-' + Date.now());
+  (scope) => {
+    scope.requiredServices = ['auth', 'payment'];
+    scope.requestId = 'req-' + Date.now();
   },
   'parse-request',
   undefined,
@@ -105,13 +142,13 @@ const chart = flowChart(
 )
   .addSelectorFunction(
     'Route Services',
-    (scope: ScopeFacade) => {
-      return scope.getValue('requiredServices') as string[];
+    (scope): string[] => {
+      return scope.requiredServices;
     },
     'route-services',
     'Select which services to invoke based on request type',
   )
-    // All three branches are LAZY — no tree cloning at build time
+    // All three branches are LAZY -- no tree cloning at build time
     .addLazySubFlowChartBranch('auth', () => {
       resolverLog.push('auth');
       return authService;
@@ -127,9 +164,9 @@ const chart = flowChart(
     .end()
   .addFunction(
     'Build Response',
-    (scope: ScopeFacade) => {
-      scope.setValue('responseStatus', 200);
-      scope.setValue('responseBody', { success: true });
+    (scope) => {
+      scope.responseStatus = 200;
+      scope.responseBody = { success: true };
     },
     'build-response',
     'Aggregate service results into HTTP response',
@@ -137,7 +174,7 @@ const chart = flowChart(
   .setEnableNarrative()
   .build();
 
-// ── Inspect build-time spec — lazy nodes are stubs ───────────────────────
+// -- Inspect build-time spec -- lazy nodes are stubs --------------------------
 
 console.log('=== Lazy Subflow Resolution (Graph-of-Services) ===\n');
 
@@ -152,12 +189,13 @@ for (const child of children) {
 
 console.log(`\nSubflows registered at build time: ${chart.subflows ? Object.keys(chart.subflows).length : 0} (expected: 0)`);
 
-// ── Execute ──────────────────────────────────────────────────────────────
+// -- Execute ------------------------------------------------------------------
 
 const executor = new FlowChartExecutor(chart);
+executor.attachFlowRecorder(new ManifestFlowRecorder());
 await executor.run();
 
-// ── Results ──────────────────────────────────────────────────────────────
+// -- Results ------------------------------------------------------------------
 
 console.log(`\nResolvers called: [${resolverLog.join(', ')}] (notification was NOT called)`);
 

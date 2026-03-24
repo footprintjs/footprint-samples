@@ -15,23 +15,27 @@
  */
 
 import {
-  flowChart,
+  typedFlowChart,
+  
   FlowChartExecutor,
-  ScopeFacade,
   NarrativeFlowRecorder,
   SilentNarrativeFlowRecorder,
   type FlowRecorder,
 } from 'footprint';
 
+interface LoopState {
+  counter: number;
+  target: number;
+}
+
 function buildLoopChart(iterations: number) {
-  return flowChart('Init', async (scope: ScopeFacade) => {
-    scope.setValue('counter', 0);
-    scope.setValue('target', iterations);
+  return typedFlowChart<LoopState>('Init', async (scope) => {
+    scope.counter = 0;
+    scope.target = iterations;
   }, 'init')
-    .addFunction('Process', async (scope: ScopeFacade) => {
-      const counter = scope.getValue('counter') as number;
-      scope.setValue('counter', counter + 1);
-      if (counter + 1 < (scope.getValue('target') as number)) {
+    .addFunction('Process', async (scope) => {
+      scope.counter = scope.counter + 1;
+      if (scope.counter < scope.target) {
         return { name: 'loop-back', next: { name: 'Process', id: 'process' } };
       }
     }, 'process')

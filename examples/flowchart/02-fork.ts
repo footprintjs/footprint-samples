@@ -4,17 +4,35 @@
  * Fork runs multiple branches in parallel, then continues
  * after all branches complete.
  *
- *                ┌─ CheckInventory ─┐
- *   LoadOrder ───┤                  ├── FinalizeOrder
- *                └─ RunFraudCheck ──┘
+ *                +-- CheckInventory --+
+ *   LoadOrder ---+                    +-- FinalizeOrder
+ *                +-- RunFraudCheck ---+
  * Try it: https://footprintjs.github.io/footprint-playground/samples/fork
  */
 
-import { FlowChartBuilder, FlowChartExecutor, ScopeFacade } from 'footprint';
+import { typedFlowChart,  FlowChartExecutor } from 'footprint';
+
+interface Order {
+  customerId: string;
+  items: string[];
+  amount: number;
+}
+
+interface ForkState {
+  order: Order;
+  orderId: string;
+  inStock: boolean;
+  warehouse: string;
+  estimatedShip: string;
+  fraudScore: number;
+  fraudCleared: boolean;
+  fraudFlags: string[];
+  orderStatus: string;
+}
 
 (async () => {
 
-// ── Mock Services ───────────────────────────────────────────────────────
+// -- Mock Services ------------------------------------------------------------
 
 const orderDB = new Map([
   ['ORD-001', { customerId: 'C-42', items: ['Widget A', 'Gadget B'], amount: 250 }],
@@ -25,7 +43,7 @@ const inventoryService = {
   check: (items: string[]) => ({
     inStock: true,
     warehouse: 'WH-East',
-    estimatedShip: '2–3 business days',
+    estimatedShip: '2-3 business days',
   }),
 };
 
@@ -37,54 +55,48 @@ const fraudService = {
   }),
 };
 
-// ── Stage Functions ─────────────────────────────────────────────────────
+// -- Flowchart ----------------------------------------------------------------
 
-const loadOrder = async (scope: ScopeFacade) => {
+const chart = typedFlowChart<ForkState>('LoadOrder', async (scope) => {
   const order = orderDB.get('ORD-001')!;
-  scope.setValue('order', order);
-  scope.setValue('orderId', 'ORD-001');
-};
-
-const checkInventory = async (scope: ScopeFacade) => {
-  const order = scope.getValue('order') as any;
-  await new Promise((r) => setTimeout(r, 30)); // simulate warehouse API
-  const result = inventoryService.check(order.items);
-  scope.setValue('inStock', result.inStock);
-  scope.setValue('warehouse', result.warehouse);
-  scope.setValue('estimatedShip', result.estimatedShip);
-};
-
-const runFraudCheck = async (scope: ScopeFacade) => {
-  const order = scope.getValue('order') as any;
-  await new Promise((r) => setTimeout(r, 20)); // simulate fraud API
-  const result = fraudService.evaluate(order.amount, order.customerId);
-  scope.setValue('fraudScore', result.score);
-  scope.setValue('fraudCleared', result.cleared);
-  scope.setValue('fraudFlags', result.flags);
-};
-
-const finalizeOrder = async (scope: ScopeFacade) => {
-  const inStock = scope.getValue('inStock') as boolean;
-  const cleared = scope.getValue('fraudCleared') as boolean;
-  const orderId = scope.getValue('orderId') as string;
-  const status = inStock && cleared ? 'confirmed' : 'held-for-review';
-  scope.setValue('orderStatus', status);
-  console.log(`  Order ${orderId}: ${status}`);
-};
-
-// ── Flowchart ───────────────────────────────────────────────────────────
-
-const chart = new FlowChartBuilder()
+  scope.order = order;
+  scope.orderId = 'ORD-001';
+}, 'load-order')
   .setEnableNarrative()
-  .start('LoadOrder', loadOrder, 'load-order')
   .addListOfFunction([
-    { id: 'CheckInventory', name: 'CheckInventory', fn: checkInventory },
-    { id: 'RunFraudCheck', name: 'RunFraudCheck', fn: runFraudCheck },
+    {
+      id: 'CheckInventory',
+      name: 'CheckInventory',
+      fn: async (scope) => {
+        const order = scope.order;
+        await new Promise((r) => setTimeout(r, 30)); // simulate warehouse API
+        const result = inventoryService.check(order.items);
+        scope.inStock = result.inStock;
+        scope.warehouse = result.warehouse;
+        scope.estimatedShip = result.estimatedShip;
+      },
+    },
+    {
+      id: 'RunFraudCheck',
+      name: 'RunFraudCheck',
+      fn: async (scope) => {
+        const order = scope.order;
+        await new Promise((r) => setTimeout(r, 20)); // simulate fraud API
+        const result = fraudService.evaluate(order.amount, order.customerId);
+        scope.fraudScore = result.score;
+        scope.fraudCleared = result.cleared;
+        scope.fraudFlags = result.flags;
+      },
+    },
   ])
-  .addFunction('FinalizeOrder', finalizeOrder, 'finalize-order')
+  .addFunction('FinalizeOrder', async (scope) => {
+    const status = scope.inStock && scope.fraudCleared ? 'confirmed' : 'held-for-review';
+    scope.orderStatus = status;
+    console.log(`  Order ${scope.orderId}: ${status}`);
+  }, 'finalize-order')
   .build();
 
-// ── Run ─────────────────────────────────────────────────────────────────
+// -- Run ----------------------------------------------------------------------
 
 const executor = new FlowChartExecutor(chart);
 await executor.run();

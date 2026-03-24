@@ -1,20 +1,30 @@
 /**
- * Flowchart: Loops (loopTo + breakFn)
+ * Flowchart: Loops (loopTo + $break)
  *
  * Use `.loopTo(stageId)` to jump back to an earlier stage.
- * Call `breakFn()` inside a stage to exit the loop.
+ * Call `scope.$break()` inside a stage to exit the loop.
  *
- *   CallAPI ←──┐
- *       │      │
- *   EvaluateResult ──┘  (retries with backoff until success or max attempts)
+ *   CallAPI <----+
+ *       |        |
+ *   EvaluateResult ---+  (retries with backoff until success or max attempts)
  * Try it: https://footprintjs.github.io/footprint-playground/samples/loops
  */
 
-import { flowChart, FlowChartExecutor, ScopeFacade } from 'footprint';
+import { typedFlowChart,  FlowChartExecutor } from 'footprint';
+
+interface LoopState {
+  city: string;
+  attempt: number;
+  maxAttempts: number;
+  lastError: string | null;
+  weather?: { city: string; tempC: number; condition: string; humidity: number };
+  success: boolean;
+  outcome: string;
+}
 
 (async () => {
 
-// ── Mock Unstable API ───────────────────────────────────────────────────
+// -- Mock Unstable API --------------------------------------------------------
 
 let callCount = 0;
 
@@ -29,65 +39,57 @@ const weatherAPI = {
   },
 };
 
-// ── Stage Functions ─────────────────────────────────────────────────────
+// -- Flowchart ----------------------------------------------------------------
 
-const initRetry = async (scope: ScopeFacade) => {
-  scope.setValue('city', 'Portland');
-  scope.setValue('attempt', 0);
-  scope.setValue('maxAttempts', 5);
-  scope.setValue('lastError', null);
-};
-
-const callAPI = async (scope: ScopeFacade) => {
-  const city = scope.getValue('city') as string;
-  const attempt = (scope.getValue('attempt') as number) + 1;
-  scope.setValue('attempt', attempt);
-
-  try {
-    const data = weatherAPI.fetch(city);
-    scope.setValue('weather', data);
-    scope.setValue('success', true);
-    console.log(`  Attempt ${attempt}: success — ${data.tempC}°C, ${data.condition}`);
-  } catch (err: any) {
-    scope.setValue('success', false);
-    scope.setValue('lastError', err.message);
-    console.log(`  Attempt ${attempt}: ${err.message}`);
-  }
-};
-
-const evaluateResult = async (scope: ScopeFacade, breakFn: () => void) => {
-  const success = scope.getValue('success') as boolean;
-  const attempt = scope.getValue('attempt') as number;
-  const maxAttempts = scope.getValue('maxAttempts') as number;
-
-  if (success) {
-    scope.setValue('outcome', 'fetched');
-    breakFn();
-    return;
-  }
-
-  if (attempt >= maxAttempts) {
-    const lastError = scope.getValue('lastError') as string;
-    scope.setValue('outcome', `failed after ${attempt} attempts: ${lastError}`);
-    breakFn();
-    return;
-  }
-
-  // Exponential backoff: 50ms, 100ms, 200ms, ...
-  const delay = 50 * Math.pow(2, attempt - 1);
-  await new Promise((r) => setTimeout(r, delay));
-};
-
-// ── Flowchart ───────────────────────────────────────────────────────────
-
-const chart = flowChart('InitRetry', initRetry, 'init-retry')
+const chart = typedFlowChart<LoopState>('InitRetry', async (scope) => {
+  scope.city = 'Portland';
+  scope.attempt = 0;
+  scope.maxAttempts = 5;
+  scope.lastError = null;
+}, 'init-retry')
   .setEnableNarrative()
-  .addFunction('CallAPI', callAPI, 'call-api')
-  .addFunction('EvaluateResult', evaluateResult, 'evaluate-result')
+  .addFunction('CallAPI', async (scope) => {
+    const city = scope.city;
+    const attempt = scope.attempt + 1;
+    scope.attempt = attempt;
+
+    try {
+      const data = weatherAPI.fetch(city);
+      scope.weather = data;
+      scope.success = true;
+      console.log(`  Attempt ${attempt}: success -- ${data.tempC}C, ${data.condition}`);
+    } catch (err: any) {
+      scope.success = false;
+      scope.lastError = err.message;
+      console.log(`  Attempt ${attempt}: ${err.message}`);
+    }
+  }, 'call-api')
+  .addFunction('EvaluateResult', async (scope) => {
+    const success = scope.success;
+    const attempt = scope.attempt;
+    const maxAttempts = scope.maxAttempts;
+
+    if (success) {
+      scope.outcome = 'fetched';
+      scope.$break();
+      return;
+    }
+
+    if (attempt >= maxAttempts) {
+      const lastError = scope.lastError;
+      scope.outcome = `failed after ${attempt} attempts: ${lastError}`;
+      scope.$break();
+      return;
+    }
+
+    // Exponential backoff: 50ms, 100ms, 200ms, ...
+    const delay = 50 * Math.pow(2, attempt - 1);
+    await new Promise((r) => setTimeout(r, delay));
+  }, 'evaluate-result')
   .loopTo('call-api')
   .build();
 
-// ── Run ─────────────────────────────────────────────────────────────────
+// -- Run ----------------------------------------------------------------------
 
 const executor = new FlowChartExecutor(chart);
 await executor.run();

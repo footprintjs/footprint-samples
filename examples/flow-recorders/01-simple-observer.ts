@@ -10,27 +10,32 @@
  */
 
 import {
-  flowChart,
+  typedFlowChart,
+  
   FlowChartExecutor,
-  ScopeFacade,
   type FlowRecorder,
 } from 'footprint';
+
+interface SimpleState {
+  input: string;
+  valid: boolean;
+  result: string;
+  output: string;
+}
 
 (async () => {
 
 // ── Build a simple linear chart ──────────────────────────────────────────
 
-const chart = flowChart('Validate', async (scope: ScopeFacade) => {
-  scope.setValue('input', 'hello');
-  scope.setValue('valid', true);
+const chart = typedFlowChart<SimpleState>('Validate', async (scope) => {
+  scope.input = 'hello';
+  scope.valid = true;
 }, 'validate')
-  .addFunction('Process', async (scope: ScopeFacade) => {
-    const input = scope.getValue('input') as string;
-    scope.setValue('result', input.toUpperCase());
+  .addFunction('Process', async (scope) => {
+    scope.result = scope.input.toUpperCase();
   }, 'process')
-  .addFunction('Output', async (scope: ScopeFacade) => {
-    const result = scope.getValue('result');
-    scope.setValue('output', `Done: ${result}`);
+  .addFunction('Output', async (scope) => {
+    scope.output = `Done: ${scope.result}`;
   }, 'output')
   .build();
 
@@ -44,7 +49,7 @@ const observer: FlowRecorder = {
     events.push(`Stage executed: ${event.stageName}`);
   },
   onNext: (event) => {
-    events.push(`  → moved from ${event.from} to ${event.to}`);
+    events.push(`  -> moved from ${event.from} to ${event.to}`);
   },
 };
 

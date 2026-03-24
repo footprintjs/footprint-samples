@@ -3,24 +3,27 @@
  *
  * The simplest flow — stages execute one after another.
  *
- *   FetchUser → EnrichProfile → SendWelcomeEmail
+ *   FetchUser -> EnrichProfile -> SendWelcomeEmail
  *
  * In the playground, edit the INPUT panel to change the user data.
  * Try it: https://footprintjs.github.io/footprint-playground/samples/linear
  */
 
-import { flowChart, FlowChartExecutor, ScopeFacade } from 'footprint';
+import { typedFlowChart,  FlowChartExecutor } from 'footprint';
+
+interface UserState {
+  user: { username: string; email: string; joinedAt: string };
+  displayName: string;
+  memberDays: number;
+  tier: string;
+  emailSent: boolean;
+  greeting: string;
+}
 
 (async () => {
 
-// ── Input ───────────────────────────────────────────────────────────────
-// INPUT is provided via the playground's JSON input panel.
-// When running standalone, fall back to default values.
-
 const input: { userId: number } =
   (typeof INPUT !== 'undefined' && INPUT) || { userId: 42 };
-
-// ── Mock Database ───────────────────────────────────────────────────────
 
 const userDB = new Map([
   [42, { username: 'alice', email: 'alice@example.com', joinedAt: '2024-01-15' }],
@@ -29,50 +32,32 @@ const userDB = new Map([
 
 const emailLog: string[] = [];
 
-// ── Stage Functions ─────────────────────────────────────────────────────
-
-const fetchUser = async (scope: ScopeFacade) => {
-  const { userId } = scope.getArgs<{ userId: number }>();
+const chart = typedFlowChart<UserState>('FetchUser', async (scope) => {
+  const { userId } = scope.$getArgs<{ userId: number }>();
   const user = userDB.get(userId);
   if (!user) throw new Error(`User #${userId} not found`);
-  scope.setValue('user', user);
-};
-
-const enrichProfile = async (scope: ScopeFacade) => {
-  const user = scope.getValue('user') as any;
-  const displayName = user.username.charAt(0).toUpperCase() + user.username.slice(1);
-  const daysSinceJoin = Math.floor(
-    (Date.now() - new Date(user.joinedAt).getTime()) / 86_400_000,
-  );
-  scope.setValue('displayName', displayName);
-  scope.setValue('memberDays', daysSinceJoin);
-  scope.setValue('tier', daysSinceJoin > 365 ? 'veteran' : 'newcomer');
-};
-
-const sendWelcomeEmail = async (scope: ScopeFacade) => {
-  const displayName = scope.getValue('displayName') as string;
-  const tier = scope.getValue('tier') as string;
-  const user = scope.getValue('user') as any;
-
-  const message =
-    tier === 'veteran'
-      ? `Welcome back, ${displayName}! Thanks for being a loyal member.`
-      : `Welcome, ${displayName}! We're glad you're here.`;
-
-  emailLog.push(`→ ${user.email}: ${message}`);
-  scope.setValue('emailSent', true);
-  scope.setValue('greeting', message);
-};
-
-// ── Flowchart ───────────────────────────────────────────────────────────
-
-const chart = flowChart('FetchUser', fetchUser, 'fetch-user')
+  scope.user = user;
+}, 'fetch-user')
   .setEnableNarrative()
-  .addFunction('EnrichProfile', enrichProfile, 'enrich-profile')
-  .addFunction('SendWelcomeEmail', sendWelcomeEmail, 'send-welcome-email')
-  .build();
+  .addFunction('EnrichProfile', async (scope) => {
+    const displayName = scope.user.username.charAt(0).toUpperCase() + scope.user.username.slice(1);
+    const daysSinceJoin = Math.floor(
+      (Date.now() - new Date(scope.user.joinedAt).getTime()) / 86_400_000,
+    );
+    scope.displayName = displayName;
+    scope.memberDays = daysSinceJoin;
+    scope.tier = daysSinceJoin > 365 ? 'veteran' : 'newcomer';
+  }, 'enrich-profile')
+  .addFunction('SendWelcomeEmail', async (scope) => {
+    const message = scope.tier === 'veteran'
+      ? `Welcome back, ${scope.displayName}! Thanks for being a loyal member.`
+      : `Welcome, ${scope.displayName}! We're glad you're here.`;
 
-// ── Run ─────────────────────────────────────────────────────────────────
+    emailLog.push(`-> ${scope.user.email}: ${message}`);
+    scope.emailSent = true;
+    scope.greeting = message;
+  }, 'send-welcome-email')
+  .build();
 
 const executor = new FlowChartExecutor(chart);
 await executor.run({ input });

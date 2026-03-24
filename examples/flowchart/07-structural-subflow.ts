@@ -19,7 +19,7 @@
  *   Inner:   (already executed — only the structure is attached)
  */
 
-import { FlowChartBuilder, FlowChartExecutor, ScopeFacade } from 'footprint';
+import { typedFlowChart, FlowChartExecutor } from 'footprint';
 
 (async () => {
 
@@ -51,21 +51,21 @@ const chart = new FlowChartBuilder()
   .setEnableNarrative()
   .start(
     'REQUEST_START',
-    (scope: ScopeFacade) => {
-      scope.setValue('method', 'POST');
-      scope.setValue('path', '/v2/grades');
-      scope.setValue('requestId', 'req-' + Date.now());
+    (scope: any) => {
+      scope['method'] = 'POST');
+      scope['path'] = '/v2/grades');
+      scope['requestId'] = 'req-' + Date.now());
     },
     'request-start',
     'Capture request metadata and assign correlation ID',
   )
   .addFunction(
     'HANDLER',
-    (scope: ScopeFacade) => {
+    (scope: any) => {
       // The route handler already executed the inner flow.
       // Record the result in scope for downstream stages.
-      scope.setValue('handlerResult', innerFlowResult.result);
-      scope.setValue('statusCode', 201);
+      scope['handlerResult'] = innerFlowResult.result);
+      scope['statusCode'] = 201);
 
       // Return a structural-only dynamic subflow:
       // - isSubflowRoot: true  → marks this node as a subflow mount point
@@ -89,9 +89,9 @@ const chart = new FlowChartBuilder()
   )
   .addFunction(
     'RESPONSE',
-    (scope: ScopeFacade) => {
-      const statusCode = scope.getValue('statusCode') as number;
-      scope.setValue('outcome', statusCode < 400 ? 'success' : 'error');
+    (scope: any) => {
+      const statusCode = scope['statusCode'];
+      scope['outcome'] = statusCode < 400 ? 'success' : 'error');
     },
     'response',
     'Classify and finalize the HTTP response.',

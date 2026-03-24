@@ -4,10 +4,10 @@
  * Runs the same realistic flowchart with every built-in strategy and a custom one.
  * The chart models an API data-sync pipeline that retries failed batches:
  *
- *   FetchConfig → PrepareBatches → ProcessBatch ─┐
- *                                      ↑          │ (loop if more batches)
- *                                      └──────────┘
- *                                 → Finalize
+ *   FetchConfig -> PrepareBatches -> ProcessBatch ---+
+ *                                      ^             | (loop if more batches)
+ *                                      +-------------+
+ *                                 -> Finalize
  *
  * Each stage has a description, so the narrative reads like prose.
  * Compare how each strategy summarizes the same 20-iteration loop differently.
@@ -17,9 +17,9 @@
  */
 
 import {
-  flowChart,
+  typedFlowChart,
+  
   FlowChartExecutor,
-  ScopeFacade,
   NarrativeFlowRecorder,
   WindowedNarrativeFlowRecorder,
   SilentNarrativeFlowRecorder,
@@ -34,34 +34,42 @@ import {
 
 const BATCH_COUNT = 20;
 
+interface SyncState {
+  batchesProcessed: number;
+  totalBatches: number;
+  errors: number;
+  batchSize: number;
+  summary: string;
+}
+
 function buildSyncChart(totalBatches: number) {
-  return flowChart(
+  return typedFlowChart<SyncState>(
     'FetchConfig',
-    async (scope: ScopeFacade) => {
-      scope.setValue('batchesProcessed', 0);
-      scope.setValue('totalBatches', totalBatches);
-      scope.setValue('errors', 0);
+    async (scope) => {
+      scope.batchesProcessed = 0;
+      scope.totalBatches = totalBatches;
+      scope.errors = 0;
     },
     'fetch-config',
     'fetch remote API configuration and credentials',
   )
     .addFunction(
       'PrepareBatches',
-      async (scope: ScopeFacade) => {
-        scope.setValue('batchSize', 100);
+      async (scope) => {
+        scope.batchSize = 100;
       },
       'prepare-batches',
       'split the dataset into batches of 100 records',
     )
     .addFunction(
       'ProcessBatch',
-      async (scope: ScopeFacade) => {
-        const processed = scope.getValue('batchesProcessed') as number;
-        scope.setValue('batchesProcessed', processed + 1);
+      async (scope) => {
+        const processed = scope.batchesProcessed;
+        scope.batchesProcessed = processed + 1;
 
         // Simulate occasional errors
         if ((processed + 1) % 7 === 0) {
-          scope.setValue('errors', (scope.getValue('errors') as number) + 1);
+          scope.errors = scope.errors + 1;
         }
 
         if (processed + 1 < totalBatches) {
@@ -76,12 +84,9 @@ function buildSyncChart(totalBatches: number) {
     )
     .addFunction(
       'Finalize',
-      async (scope: ScopeFacade) => {
-        const errors = scope.getValue('errors') as number;
-        scope.setValue(
-          'summary',
-          `Synced ${totalBatches} batches with ${errors} failures`,
-        );
+      async (scope) => {
+        const errors = scope.errors;
+        scope.summary = `Synced ${totalBatches} batches with ${errors} failures`;
       },
       'finalize',
       'generate sync report and clean up resources',
@@ -162,7 +167,7 @@ class EveryFailureRecorder extends NarrativeFlowRecorder {
     {
       name: 'RLE',
       recorder: new RLENarrativeFlowRecorder(),
-      note: 'Run-length encoding: "Looped N× through X"',
+      note: 'Run-length encoding: "Looped Nx through X"',
     },
     {
       name: 'Custom (failures only)',
@@ -174,6 +179,7 @@ class EveryFailureRecorder extends NarrativeFlowRecorder {
   for (const { name, recorder, note } of strategies) {
     const executor = new FlowChartExecutor(
       buildSyncChart(BATCH_COUNT),
+,
     );
     executor.attachFlowRecorder(recorder);
     await executor.run();
@@ -190,6 +196,7 @@ class EveryFailureRecorder extends NarrativeFlowRecorder {
   const separate = new SeparateNarrativeFlowRecorder();
   const executor = new FlowChartExecutor(
     buildSyncChart(BATCH_COUNT),
+,
   );
   executor.attachFlowRecorder(separate);
   await executor.run();

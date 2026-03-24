@@ -11,9 +11,9 @@
  */
 
 import {
-  flowChart,
+  typedFlowChart,
+  
   FlowChartExecutor,
-  ScopeFacade,
   NarrativeFlowRecorder,
   type FlowRecorder,
   type FlowLoopEvent,
@@ -26,7 +26,7 @@ import {
 const consoleLogger: FlowRecorder = {
   id: 'console',
   onStageExecuted: (e) => console.log(`  [log] Executed: ${e.stageName}`),
-  onDecision: (e) => console.log(`  [log] Decision: ${e.decider} → ${e.chosen}`),
+  onDecision: (e) => console.log(`  [log] Decision: ${e.decider} -> ${e.chosen}`),
   onLoop: (e) => console.log(`  [log] Loop: ${e.target} #${e.iteration}`),
 };
 
@@ -84,22 +84,29 @@ class EverySeventhRecorder extends NarrativeFlowRecorder {
   getSuppressed(): number { return this.suppressed; }
 }
 
+// ── State interface ──────────────────────────────────────────────────────
+
+interface LoopState {
+  counter: number;
+  target: number;
+  result?: string;
+}
+
 // ── Run all three with a loop chart ──────────────────────────────────────
 
 function buildChart() {
-  return flowChart('Init', async (scope: ScopeFacade) => {
-    scope.setValue('counter', 0);
-    scope.setValue('target', 15);
+  return typedFlowChart<LoopState>('Init', async (scope) => {
+    scope.counter = 0;
+    scope.target = 15;
   }, 'init')
-    .addFunction('Process', async (scope: ScopeFacade) => {
-      const counter = scope.getValue('counter') as number;
-      scope.setValue('counter', counter + 1);
-      if (counter + 1 < (scope.getValue('target') as number)) {
+    .addFunction('Process', async (scope) => {
+      scope.counter = scope.counter + 1;
+      if (scope.counter < scope.target) {
         return { name: 'loop-back', next: { name: 'Process', id: 'process' } };
       }
     }, 'process')
-    .addFunction('Done', async (scope: ScopeFacade) => {
-      scope.setValue('result', 'completed');
+    .addFunction('Done', async (scope) => {
+      scope.result = 'completed';
     }, 'done')
     .build();
 }

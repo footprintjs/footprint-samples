@@ -5,16 +5,41 @@
  * The parent pipeline runs the subflow as a single stage,
  * then continues after it completes.
  *
- *   Parent:  CreateOrder → [PaymentSubflow] → ShipOrder
- *   Subflow: ValidateCard → ChargeCard → SendReceipt
+ *   Parent:  CreateOrder -> [PaymentSubflow] -> ShipOrder
+ *   Subflow: ValidateCard -> ChargeCard -> SendReceipt
  * Try it: https://footprintjs.github.io/footprint-playground/samples/subflow
  */
 
-import { flowChart, FlowChartBuilder, FlowChartExecutor, ScopeFacade } from 'footprint';
+import { typedFlowChart,  FlowChartBuilder, FlowChartExecutor, type TypedScope } from 'footprint';
+
+interface SubflowPaymentState {
+  orderTotal: number;
+  cardLast4: string;
+  cardValid: boolean;
+  cardNetwork: string;
+  paymentStatus: string;
+  transactionId?: string;
+  receiptSent: boolean;
+}
+
+interface ParentOrderState {
+  orderId: string;
+  orderTotal: number;
+  customerName: string;
+  cardLast4: string;
+  cardValid?: boolean;
+  cardNetwork?: string;
+  paymentStatus?: string;
+  transactionId?: string;
+  receiptSent?: boolean;
+  tracking?: string;
+  carrier?: string;
+  shipmentStatus: string;
+}
 
 (async () => {
 
-// ── Mock Services ───────────────────────────────────────────────────────
+// -- Mock Services ------------------------------------------------------------
 
 const paymentGateway = {
   validateCard: (last4: string) => ({
@@ -33,87 +58,73 @@ const shippingService = {
   createLabel: (orderId: string) => ({
     trackingNumber: 'TRK-' + Math.random().toString(36).slice(2, 8).toUpperCase(),
     carrier: 'FedEx',
-    estimatedDelivery: '3–5 business days',
+    estimatedDelivery: '3-5 business days',
   }),
 };
 
-// ── Subflow Stage Functions ─────────────────────────────────────────────
+// -- Build the Subflow --------------------------------------------------------
 
-const validateCard = async (scope: ScopeFacade) => {
-  const last4 = scope.getValue('cardLast4') as string;
-  const result = paymentGateway.validateCard(last4);
-  scope.setValue('cardValid', result.valid);
-  scope.setValue('cardNetwork', result.network);
-};
-
-const chargeCard = async (scope: ScopeFacade) => {
-  const amount = scope.getValue('orderTotal') as number;
-  const valid = scope.getValue('cardValid') as boolean;
-  if (!valid) {
-    scope.setValue('paymentStatus', 'failed');
-    return;
-  }
-  await new Promise((r) => setTimeout(r, 40)); // simulate gateway latency
-  const result = paymentGateway.charge(amount);
-  scope.setValue('paymentStatus', result.success ? 'charged' : 'declined');
-  scope.setValue('transactionId', result.transactionId);
-};
-
-const sendReceipt = async (scope: ScopeFacade) => {
-  const status = scope.getValue('paymentStatus') as string;
-  const txnId = scope.getValue('transactionId') as string;
-  scope.setValue('receiptSent', status === 'charged');
-  if (status === 'charged') {
-    console.log(`  Receipt sent for transaction ${txnId}`);
-  }
-};
-
-// ── Parent Stage Functions ──────────────────────────────────────────────
-
-const createOrder = async (scope: ScopeFacade) => {
-  scope.setValue('orderId', 'ORD-42');
-  scope.setValue('orderTotal', 129.99);
-  scope.setValue('customerName', 'Eve');
-  scope.setValue('cardLast4', '4242');
-};
-
-const shipOrder = async (scope: ScopeFacade) => {
-  const status = scope.getValue('paymentStatus') as string;
-  const orderId = scope.getValue('orderId') as string;
-  if (status === 'charged') {
-    const label = shippingService.createLabel(orderId);
-    scope.setValue('tracking', label.trackingNumber);
-    scope.setValue('carrier', label.carrier);
-    scope.setValue('shipmentStatus', 'shipped');
-    console.log(`  ${orderId} shipped via ${label.carrier} — ${label.trackingNumber}`);
-  } else {
-    scope.setValue('shipmentStatus', 'on-hold');
-    console.log(`  ${orderId} on hold — payment ${status}`);
-  }
-};
-
-// ── Build the Subflow ───────────────────────────────────────────────────
-
-const paymentSubflow = flowChart('ValidateCard', validateCard, 'validate-card')
-  .addFunction('ChargeCard', chargeCard, 'charge-card')
-  .addFunction('SendReceipt', sendReceipt, 'send-receipt')
+const paymentSubflow = new FlowChartBuilder<any, TypedScope<SubflowPaymentState>>()
+  .start('ValidateCard', async (scope) => {
+    const last4 = scope.cardLast4;
+    const result = paymentGateway.validateCard(last4);
+    scope.cardValid = result.valid;
+    scope.cardNetwork = result.network;
+  }, 'validate-card', 'Verify card details with payment gateway')
+  .addFunction('ChargeCard', async (scope) => {
+    const amount = scope.orderTotal;
+    const valid = scope.cardValid;
+    if (!valid) {
+      scope.paymentStatus = 'failed';
+      return;
+    }
+    await new Promise((r) => setTimeout(r, 40)); // simulate gateway latency
+    const result = paymentGateway.charge(amount);
+    scope.paymentStatus = result.success ? 'charged' : 'declined';
+    scope.transactionId = result.transactionId;
+  }, 'charge-card', 'Charge the customer card')
+  .addFunction('SendReceipt', async (scope) => {
+    const status = scope.paymentStatus;
+    const txnId = scope.transactionId;
+    scope.receiptSent = status === 'charged';
+    if (status === 'charged') {
+      console.log(`  Receipt sent for transaction ${txnId}`);
+    }
+  }, 'send-receipt', 'Email transaction receipt')
   .build();
 
-// ── Build the Parent Flowchart ──────────────────────────────────────────
+// -- Build the Parent Flowchart -----------------------------------------------
 
-const chart = new FlowChartBuilder()
+const chart = typedFlowChart<ParentOrderState>('CreateOrder', async (scope) => {
+  scope.orderId = 'ORD-42';
+  scope.orderTotal = 129.99;
+  scope.customerName = 'Eve';
+  scope.cardLast4 = '4242';
+}, 'create-order')
   .setEnableNarrative()
-  .start('CreateOrder', createOrder, 'create-order')
   .addSubFlowChartNext('payment', paymentSubflow, 'ProcessPayment', {
     inputMapper: (parentScope: any) => ({
       orderTotal: parentScope.orderTotal,
       cardLast4: parentScope.cardLast4,
     }),
   })
-  .addFunction('ShipOrder', shipOrder, 'ship-order')
+  .addFunction('ShipOrder', async (scope) => {
+    const status = scope.paymentStatus!;
+    const orderId = scope.orderId;
+    if (status === 'charged') {
+      const label = shippingService.createLabel(orderId);
+      scope.tracking = label.trackingNumber;
+      scope.carrier = label.carrier;
+      scope.shipmentStatus = 'shipped';
+      console.log(`  ${orderId} shipped via ${label.carrier} -- ${label.trackingNumber}`);
+    } else {
+      scope.shipmentStatus = 'on-hold';
+      console.log(`  ${orderId} on hold -- payment ${status}`);
+    }
+  }, 'ship-order', 'Create shipping label and dispatch')
   .build();
 
-// ── Run ─────────────────────────────────────────────────────────────────
+// -- Run ----------------------------------------------------------------------
 
 const executor = new FlowChartExecutor(chart);
 await executor.run();

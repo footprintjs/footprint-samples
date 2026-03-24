@@ -15,9 +15,9 @@
 
 import { z } from 'zod';
 import {
-  flowChart,
+  typedFlowChart,
+  
   FlowChartExecutor,
-  ScopeFacade,
   InputValidationError,
   extractErrorInfo,
   formatErrorInfo,
@@ -28,22 +28,26 @@ import type { FlowRecorder, FlowErrorEvent } from 'footprint';
 // A. Custom FlowRecorder with structured error observation
 // ─────────────────────────────────────────────────────────────────────────────
 
+interface OrderState {
+  rawOrder: { customerId: string; items: string[]; total: number };
+}
+
 async function demoStructuredErrorRecorder() {
   console.log('\n=== A. Custom FlowRecorder — Structured Error Observation ===\n');
 
   // Build a pipeline that validates user input
-  const chart = flowChart('ReceiveOrder', async (scope: ScopeFacade) => {
-    scope.setValue('rawOrder', { customerId: 'C1', items: ['laptop'], total: -50 });
+  const chart = typedFlowChart<OrderState>('ReceiveOrder', async (scope) => {
+    scope.rawOrder = { customerId: 'C1', items: ['laptop'], total: -50 };
   }, 'receive-order')
-    .addFunction('ValidateOrder', async (scope: ScopeFacade) => {
-      const order = scope.getValue('rawOrder') as Record<string, unknown>;
+    .addFunction('ValidateOrder', async (scope) => {
+      const order = scope.rawOrder;
 
       // Simulate a Zod-like validation producing an InputValidationError
       const issues = [];
-      if ((order.total as number) < 0) {
+      if (order.total < 0) {
         issues.push({ path: ['total'], message: 'Must be a positive number', code: 'too_small' });
       }
-      if (!order.email) {
+      if (!(order as any).email) {
         issues.push({
           path: ['email'],
           message: 'Required',
@@ -102,14 +106,18 @@ async function demoStructuredErrorRecorder() {
 // B. Narrative enrichment — validation issues in the story
 // ─────────────────────────────────────────────────────────────────────────────
 
+interface NarrativeState {
+  payload: { name: string; age: number; email: string };
+}
+
 async function demoNarrativeEnrichment() {
   console.log('\n=== B. Narrative Enrichment — Validation Issues in the Story ===\n');
 
-  const chart = flowChart('FetchData', async (scope: ScopeFacade) => {
-    scope.setValue('payload', { name: 'Bob', age: -5, email: '' });
+  const chart = typedFlowChart<NarrativeState>('FetchData', async (scope) => {
+    scope.payload = { name: 'Bob', age: -5, email: '' };
   }, 'fetch-data')
-    .addFunction('Validate', async (scope: ScopeFacade) => {
-      const payload = scope.getValue('payload') as Record<string, unknown>;
+    .addFunction('Validate', async (scope) => {
+      const payload = scope.payload;
       throw new InputValidationError('Validation failed', [
         { path: ['age'], message: 'Must be positive', code: 'too_small' },
         { path: ['email'], message: 'Cannot be empty', code: 'too_small' },
@@ -190,7 +198,7 @@ async function main() {
   await demoNarrativeEnrichment();
   await demoUtilities();
 
-  console.log('\n✓ All demos complete.\n');
+  console.log('\nAll demos complete.\n');
 }
 
 main().catch(console.error);
