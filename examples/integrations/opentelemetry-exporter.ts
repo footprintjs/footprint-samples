@@ -15,9 +15,8 @@
  */
 
 import {
-  flowChart,
+  typedFlowChart,
   FlowChartExecutor,
-  ScopeFacade,
   type FlowRecorder,
   type FlowStageEvent,
   type FlowDecisionEvent,
@@ -202,23 +201,34 @@ class OpenTelemetryFlowRecorder implements FlowRecorder {
   }
 }
 
+// ── State types ─────────────────────────────────────────────────────────
+
+interface ETLState {
+  data: number[];
+  transformed: number[];
+}
+
+interface IngestionState {
+  source: string;
+  stored: boolean;
+}
+
 // ── Demo flowchart ──────────────────────────────────────────────────────
 
-const subChart = flowChart('FetchData', (scope: ScopeFacade) => {
-  scope.setValue('data', [1, 2, 3]);
+const subChart = typedFlowChart<ETLState>('FetchData', (scope) => {
+  scope.data = [1, 2, 3];
 }, 'fetch-data', undefined, 'Fetches data from source')
-  .addFunction('Transform', (scope: ScopeFacade) => {
-    const data = scope.getValue('data') as number[];
-    scope.setValue('transformed', data.map(x => x * 2));
+  .addFunction('Transform', (scope) => {
+    scope.transformed = scope.data.map(x => x * 2);
   }, 'transform', 'Transforms fetched data')
   .build();
 
-const chart = flowChart('Ingest', (scope: ScopeFacade) => {
-  scope.setValue('source', 'api');
+const chart = typedFlowChart<IngestionState>('Ingest', (scope) => {
+  scope.source = 'api';
 }, 'ingest', undefined, 'Starts data ingestion')
   .addSubFlowChartNext('sf-etl', subChart, 'ETL Pipeline')
-  .addFunction('Store', (scope: ScopeFacade) => {
-    scope.setValue('stored', true);
+  .addFunction('Store', (scope) => {
+    scope.stored = true;
   }, 'store', 'Persists to database')
   .setEnableNarrative()
   .build();

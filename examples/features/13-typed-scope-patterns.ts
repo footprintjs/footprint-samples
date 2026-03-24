@@ -3,7 +3,7 @@
  *
  * Three ways to use TypedScope:
  * 1. typedFlowChart<T>() — simplest, recommended
- * 2. createTypedScopeFactory<T>() — with FlowChartBuilder
+ * 2. — with FlowChartBuilder
  * 3. $-methods — escape hatches for dynamic/advanced use
  *
  * Run:  npm run feature:scope-factory
@@ -12,7 +12,6 @@
 
 import {
   typedFlowChart,
-  createTypedScopeFactory,
   FlowChartBuilder,
   FlowChartExecutor,
   MetricRecorder,
@@ -44,16 +43,16 @@ const chart1 = typedFlowChart<OrderState>('Receive', async (scope) => {
   .setEnableNarrative()
   .build();
 
-const executor1 = new FlowChartExecutor(chart1, createTypedScopeFactory<OrderState>());
+const executor1 = new FlowChartExecutor(chart1);
 await executor1.run();
 
 console.log('  Result:', executor1.getSnapshot().sharedState.status);
 console.log('  Narrative:');
 executor1.getNarrative().forEach((line) => console.log(`    ${line}`));
 
-// ── Pattern 2: FlowChartBuilder + createTypedScopeFactory ──────────────
+// ── Pattern 2: FlowChartBuilder +──────────────
 
-console.log('\n=== Pattern 2: FlowChartBuilder + createTypedScopeFactory ===\n');
+console.log('\n=== Pattern 2: FlowChartBuilder +===\n');
 
 const chart2 = new FlowChartBuilder<any, import('footprint').TypedScope<OrderState>>()
   .start('Receive', async (scope) => {
@@ -66,7 +65,7 @@ const chart2 = new FlowChartBuilder<any, import('footprint').TypedScope<OrderSta
   }, 'process')
   .build();
 
-const executor2 = new FlowChartExecutor(chart2, createTypedScopeFactory<OrderState>());
+const executor2 = new FlowChartExecutor(chart2);
 const metrics = new MetricRecorder();
 executor2.attachRecorder(metrics);
 await executor2.run();
@@ -95,7 +94,7 @@ const chart3 = typedFlowChart<OrderState>('Dynamic', async (scope) => {
 }, 'dynamic')
   .build();
 
-const executor3 = new FlowChartExecutor(chart3, createTypedScopeFactory<OrderState>());
+const executor3 = new FlowChartExecutor(chart3);
 await executor3.run();
 console.log('  State:', executor3.getSnapshot().sharedState);
 
@@ -103,7 +102,7 @@ console.log('  State:', executor3.getSnapshot().sharedState);
 
 console.log('\n=== Summary ===');
 console.log('  Pattern 1: typedFlowChart<T>()                    -- zero boilerplate');
-console.log('  Pattern 2: FlowChartBuilder + createTypedScopeFactory -- with recorder attachment');
+console.log('  Pattern 2: FlowChartBuilder +-- with recorder attachment');
 console.log('  Pattern 3: $-methods                               -- dynamic keys, redaction, diagnostics');
 
 })().catch(console.error);

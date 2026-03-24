@@ -15,9 +15,8 @@
  */
 
 import {
-  flowChart,
+  typedFlowChart,
   FlowChartExecutor,
-  ScopeFacade,
   type FlowRecorder,
   type FlowStageEvent,
   type FlowDecisionEvent,
@@ -167,33 +166,47 @@ class ElasticAPMFlowRecorder implements FlowRecorder {
   }
 }
 
+// ── State types ─────────────────────────────────────────────────────────
+
+interface ValidationState {
+  formatOk: boolean;
+  rulesOk: boolean;
+}
+
+interface RequestState {
+  requestId: string;
+  processed: boolean;
+  rejected: boolean;
+  responded: boolean;
+}
+
 // ── Demo flowchart ──────────────────────────────────────────────────────
 
-const validationFlow = flowChart('CheckFormat', (scope: ScopeFacade) => {
-  scope.setValue('formatOk', true);
+const validationFlow = typedFlowChart<ValidationState>('CheckFormat', (scope) => {
+  scope.formatOk = true;
 }, 'check-format', undefined, 'Validates input format')
-  .addFunction('CheckRules', (scope: ScopeFacade) => {
-    scope.setValue('rulesOk', true);
+  .addFunction('CheckRules', (scope) => {
+    scope.rulesOk = true;
   }, 'check-rules', 'Applies business rules')
   .build();
 
-const chart = flowChart('Receive', (scope: ScopeFacade) => {
-  scope.setValue('requestId', 'REQ-001');
+const chart = typedFlowChart<RequestState>('Receive', (scope) => {
+  scope.requestId = 'REQ-001';
 }, 'receive', undefined, 'Receives incoming request')
   .addSubFlowChartNext('sf-validate', validationFlow, 'Validation')
-  .addDeciderFunction('Route', (scope: ScopeFacade) => {
-    return scope.getValue('formatOk') ? 'process' : 'reject';
+  .addDeciderFunction('Route', (scope) => {
+    return scope.requestId ? 'process' : 'reject';
   }, 'route', 'Routes based on validation result')
-    .addFunctionBranch('process', 'Process', (scope: ScopeFacade) => {
-      scope.setValue('processed', true);
+    .addFunctionBranch('process', 'Process', (scope) => {
+      scope.processed = true;
     })
-    .addFunctionBranch('reject', 'Reject', (scope: ScopeFacade) => {
-      scope.setValue('rejected', true);
+    .addFunctionBranch('reject', 'Reject', (scope) => {
+      scope.rejected = true;
     })
     .setDefault('reject')
     .end()
-  .addFunction('Respond', (scope: ScopeFacade) => {
-    scope.setValue('responded', true);
+  .addFunction('Respond', (scope) => {
+    scope.responded = true;
   }, 'respond', 'Sends response')
   .setEnableNarrative()
   .build();

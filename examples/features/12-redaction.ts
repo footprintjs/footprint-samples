@@ -11,7 +11,6 @@
 
 import {
   typedFlowChart,
-  createTypedScopeFactory,
   FlowChartExecutor,
 } from 'footprint';
 
@@ -56,7 +55,7 @@ interface RegistrationState {
     .setEnableNarrative()
     .build();
 
-  const executor = new FlowChartExecutor(chart, createTypedScopeFactory<RegistrationState>());
+  const executor = new FlowChartExecutor(chart);
 
   // One config, three dimensions:
   executor.setRedactionPolicy({

@@ -11,7 +11,6 @@
 
 import {
   typedFlowChart,
-  createTypedScopeFactory,
   FlowChartExecutor,
   type Recorder,
   type ReadEvent,
@@ -75,7 +74,7 @@ const chart = typedFlowChart<OrderState>('Input', async (scope) => {
   }, 'process')
   .build();
 
-const executor = new FlowChartExecutor(chart, createTypedScopeFactory<OrderState>());
+const executor = new FlowChartExecutor(chart);
 executor.attachRecorder(auditRecorder);
 await executor.run();
 

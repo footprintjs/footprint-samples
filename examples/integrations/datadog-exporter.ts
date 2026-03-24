@@ -9,9 +9,8 @@
  */
 
 import {
-  flowChart,
+  typedFlowChart,
   FlowChartExecutor,
-  ScopeFacade,
   type FlowRecorder,
   type FlowStageEvent,
   type FlowDecisionEvent,
@@ -139,33 +138,47 @@ class DatadogFlowRecorder implements FlowRecorder {
   }
 }
 
+// ── State types ─────────────────────────────────────────────────────────
+
+interface PaymentState {
+  paymentValid: boolean;
+  charged: boolean;
+}
+
+interface OrderState {
+  orderId: string;
+  approved: boolean;
+  flagged: boolean;
+  confirmed: boolean;
+}
+
 // ── Demo flowchart ──────────────────────────────────────────────────────
 
-const subChart = flowChart('ValidatePayment', (scope: ScopeFacade) => {
-  scope.setValue('paymentValid', true);
+const subChart = typedFlowChart<PaymentState>('ValidatePayment', (scope) => {
+  scope.paymentValid = true;
 }, 'validate-payment', undefined, 'Validates payment details')
-  .addFunction('ChargeCard', (scope: ScopeFacade) => {
-    scope.setValue('charged', true);
+  .addFunction('ChargeCard', (scope) => {
+    scope.charged = true;
   }, 'charge-card', 'Charges the credit card')
   .build();
 
-const chart = flowChart('ReceiveOrder', (scope: ScopeFacade) => {
-  scope.setValue('orderId', 'ORD-12345');
+const chart = typedFlowChart<OrderState>('ReceiveOrder', (scope) => {
+  scope.orderId = 'ORD-12345';
 }, 'receive-order', undefined, 'Receives incoming order')
-  .addDeciderFunction('RiskCheck', (scope: ScopeFacade) => {
-    return scope.getValue('orderId') ? 'low' : 'high';
+  .addDeciderFunction('RiskCheck', (scope) => {
+    return scope.orderId ? 'low' : 'high';
   }, 'risk-check', 'Evaluates order risk')
-    .addFunctionBranch('low', 'Approve', (scope: ScopeFacade) => {
-      scope.setValue('approved', true);
+    .addFunctionBranch('low', 'Approve', (scope) => {
+      scope.approved = true;
     })
-    .addFunctionBranch('high', 'ManualReview', (scope: ScopeFacade) => {
-      scope.setValue('flagged', true);
+    .addFunctionBranch('high', 'ManualReview', (scope) => {
+      scope.flagged = true;
     })
     .setDefault('high')
     .end()
   .addSubFlowChartNext('sf-payment', subChart, 'PaymentSubflow')
-  .addFunction('Confirm', (scope: ScopeFacade) => {
-    scope.setValue('confirmed', true);
+  .addFunction('Confirm', (scope) => {
+    scope.confirmed = true;
   }, 'confirm', 'Sends confirmation')
   .setEnableNarrative()
   .build();

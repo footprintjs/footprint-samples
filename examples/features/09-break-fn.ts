@@ -15,7 +15,6 @@
 
 import {
   typedFlowChart,
-  createTypedScopeFactory,
   FlowChartExecutor,
 } from 'footprint';
 
@@ -61,7 +60,7 @@ const validationChart = typedFlowChart<PaymentState>(
   }, 'send-confirmation')
   .build();
 
-const executor1 = new FlowChartExecutor(validationChart, createTypedScopeFactory<PaymentState>());
+const executor1 = new FlowChartExecutor(validationChart);
 await executor1.run();
 
 executor1.getNarrative().forEach((line) => console.log(`  ${line}`));
@@ -118,7 +117,7 @@ const budgetChart = typedFlowChart<BudgetState>(
   }, 'buy-item-4')
   .build();
 
-const executor2 = new FlowChartExecutor(budgetChart, createTypedScopeFactory<BudgetState>());
+const executor2 = new FlowChartExecutor(budgetChart);
 await executor2.run();
 
 executor2.getNarrative().forEach((line) => console.log(`  ${line}`));

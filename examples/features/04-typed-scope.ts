@@ -10,7 +10,6 @@
 
 import {
   typedFlowChart,
-  createTypedScopeFactory,
   FlowChartExecutor,
 } from 'footprint';
 
@@ -43,7 +42,7 @@ const chart = typedFlowChart<PatientState>('Intake', async (scope) => {
   }, 'diagnose')
   .build();
 
-const executor = new FlowChartExecutor(chart, createTypedScopeFactory<PatientState>());
+const executor = new FlowChartExecutor(chart);
 await executor.run();
 
 console.log('=== TypedScope — Typed Property Access ===\n');

@@ -10,7 +10,6 @@
 
 import {
   typedFlowChart,
-  createTypedScopeFactory,
   FlowChartExecutor,
   defineContract,
   decide,
@@ -84,7 +83,7 @@ interface OrderState {
 
   console.log('\n=== Pipeline Execution ===\n');
 
-  const executor = new FlowChartExecutor(chart, createTypedScopeFactory<OrderState>());
+  const executor = new FlowChartExecutor(chart);
   await executor.run({
     input: { item: 'Widget Pro', quantity: 3, unitPrice: 29.99 },
   });

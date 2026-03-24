@@ -13,7 +13,6 @@
 
 import {
   typedFlowChart,
-  createTypedScopeFactory,
   FlowChartExecutor,
   MetricRecorder,
   DebugRecorder,
@@ -86,7 +85,7 @@ const chart = typedFlowChart<TransferState>('ValidateInput', async (scope) => {
   }, 'execute-transfer')
   .build();
 
-const executor = new FlowChartExecutor(chart, createTypedScopeFactory<TransferState>());
+const executor = new FlowChartExecutor(chart);
 executor.attachRecorder(metrics);
 executor.attachRecorder(debug);
 executor.attachRecorder(alerts);
@@ -126,7 +125,7 @@ const chart2 = typedFlowChart<FallbackState>('FetchPrimary', async (scope) => {
   }, 'process')
   .build();
 
-const executor2 = new FlowChartExecutor(chart2, createTypedScopeFactory<FallbackState>());
+const executor2 = new FlowChartExecutor(chart2);
 await executor2.run();
 
 console.log('  Pipeline completed with fallback');

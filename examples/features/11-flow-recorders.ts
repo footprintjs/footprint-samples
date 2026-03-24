@@ -10,7 +10,6 @@
 
 import {
   typedFlowChart,
-  createTypedScopeFactory,
   FlowChartExecutor,
   type FlowRecorder,
   NarrativeFlowRecorder,
@@ -59,7 +58,7 @@ function buildLoopChart(iterations = 20) {
   };
 
   const narrator1 = new NarrativeFlowRecorder();
-  let executor = new FlowChartExecutor(buildLoopChart(10), createTypedScopeFactory<LoopState>());
+  let executor = new FlowChartExecutor(buildLoopChart(10));
   executor.attachFlowRecorder(narrator1);
   executor.attachFlowRecorder(metrics);
   await executor.run();
@@ -67,7 +66,7 @@ function buildLoopChart(iterations = 20) {
 
   console.log('=== 2. Windowed Strategy (first 3 + last 2) ===\n');
 
-  executor = new FlowChartExecutor(buildLoopChart(20), createTypedScopeFactory<LoopState>());
+  executor = new FlowChartExecutor(buildLoopChart(20));
   executor.attachFlowRecorder(new WindowedNarrativeFlowRecorder(3, 2));
   await executor.run();
   executor.getFlowNarrative().forEach((line) => console.log(`  ${line}`));
@@ -75,7 +74,7 @@ function buildLoopChart(iterations = 20) {
 
   console.log('=== 3. Silent Strategy (summary only) ===\n');
 
-  executor = new FlowChartExecutor(buildLoopChart(20), createTypedScopeFactory<LoopState>());
+  executor = new FlowChartExecutor(buildLoopChart(20));
   executor.attachFlowRecorder(new SilentNarrativeFlowRecorder());
   await executor.run();
   executor.getFlowNarrative().forEach((line) => console.log(`  ${line}`));
@@ -83,7 +82,7 @@ function buildLoopChart(iterations = 20) {
 
   console.log('=== 4. Adaptive Strategy (full for 3, then every 5th) ===\n');
 
-  executor = new FlowChartExecutor(buildLoopChart(20), createTypedScopeFactory<LoopState>());
+  executor = new FlowChartExecutor(buildLoopChart(20));
   executor.attachFlowRecorder(new AdaptiveNarrativeFlowRecorder(3, 5));
   await executor.run();
   executor.getFlowNarrative().forEach((line) => console.log(`  ${line}`));
@@ -92,7 +91,7 @@ function buildLoopChart(iterations = 20) {
   console.log('=== 5. Separate Strategy (main + loop detail channels) ===\n');
 
   const separate = new SeparateNarrativeFlowRecorder();
-  executor = new FlowChartExecutor(buildLoopChart(20), createTypedScopeFactory<LoopState>());
+  executor = new FlowChartExecutor(buildLoopChart(20));
   executor.attachFlowRecorder(separate);
   await executor.run();
 

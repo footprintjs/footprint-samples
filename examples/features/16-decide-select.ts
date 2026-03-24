@@ -12,7 +12,6 @@
 
 import {
   typedFlowChart,
-  createTypedScopeFactory,
   FlowChartExecutor,
   decide,
   select,
@@ -73,7 +72,7 @@ const loanChart = typedFlowChart<LoanState>('LoadApplication', async (scope) => 
     .end()
   .build();
 
-const loanExecutor = new FlowChartExecutor(loanChart, createTypedScopeFactory<LoanState>());
+const loanExecutor = new FlowChartExecutor(loanChart);
 await loanExecutor.run();
 
 console.log('Narrative (filter evidence shows operators + thresholds):');
@@ -110,7 +109,7 @@ const functionChart = typedFlowChart<LoanState>('LoadApp', async (scope) => {
     .end()
   .build();
 
-const fnExecutor = new FlowChartExecutor(functionChart, createTypedScopeFactory<LoanState>());
+const fnExecutor = new FlowChartExecutor(functionChart);
 await fnExecutor.run();
 
 console.log('Narrative (function evidence shows which keys were read):');
@@ -150,7 +149,7 @@ const screeningChart = typedFlowChart<ScreeningState>('LoadVitals', async (scope
   }, 'report')
   .build();
 
-const screeningExecutor = new FlowChartExecutor(screeningChart, createTypedScopeFactory<ScreeningState>());
+const screeningExecutor = new FlowChartExecutor(screeningChart);
 await screeningExecutor.run();
 
 console.log('\nNarrative:');

@@ -10,7 +10,6 @@
 
 import {
   typedFlowChart,
-  createTypedScopeFactory,
   FlowChartExecutor,
   DebugRecorder,
 } from 'footprint';
@@ -53,7 +52,7 @@ console.log('\n  (Paste into https://mermaid.live to render)\n');
 
 const chart = builder.build();
 
-const executor = new FlowChartExecutor(chart, createTypedScopeFactory<TextState>());
+const executor = new FlowChartExecutor(chart);
 executor.attachRecorder(debug);
 await executor.run();
 

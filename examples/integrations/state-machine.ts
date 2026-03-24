@@ -13,10 +13,8 @@
  */
 
 import {
-  flowChart,
+  typedFlowChart,
   FlowChartExecutor,
-  ScopeFacade,
-  NarrativeRecorder,
 } from 'footprint';
 
 // ── Domain types ──────────────────────────────────────────────────────
@@ -63,15 +61,40 @@ class OrderStateMachine {
   }
 }
 
-// ── Shared NarrativeRecorder captures traces across ALL flowcharts ────
+// ── Narrative collection ───────────────────────────────────────────────
+// Each flowchart uses setEnableNarrative(). After execution, we collect
+// the narrative lines from each executor into a combined trace.
 
-const recorder = new NarrativeRecorder({ id: 'order', detail: 'full' });
+const allNarrativeLines: string[] = [];
 
-/** Helper: create an executor with the shared recorder attached. */
-function createExecutor(chart: any) {
+/** Helper: create an executor, run it, and collect its narrative. */
+async function runAndCollect(chart: any): Promise<void> {
   const executor = new FlowChartExecutor(chart);
-  executor.attachRecorder(recorder);
-  return executor;
+  await executor.run();
+  allNarrativeLines.push(...executor.getNarrative());
+}
+
+// ── State types for each flowchart ─────────────────────────────────────
+
+interface ValidationState {
+  items: { name: string; qty: number; price: number }[];
+  allInStock: boolean;
+  shippingAddress: string;
+  addressValid: boolean;
+}
+
+interface PaymentState {
+  total: number;
+  paymentId: string;
+  charged: number;
+}
+
+interface ShippingState {
+  trackingNumber: string;
+  labelAddress: string;
+  carrier: string;
+  estimatedDays: number;
+  dispatchStatus: string;
 }
 
 // ── Wire up the FSM with FootPrint-powered handlers ──────────────────
@@ -84,19 +107,20 @@ const fsm = new OrderStateMachine()
     let allInStock = false;
     let addressValid = false;
 
-    const chart = flowChart('CheckInventory', async (scope: ScopeFacade) => {
-      scope.setValue('items', order.items);
+    const chart = typedFlowChart<ValidationState>('CheckInventory', async (scope) => {
+      scope.items = order.items;
       allInStock = order.items.every((item) => item.qty <= 100);
-      scope.setValue('allInStock', allInStock);
+      scope.allInStock = allInStock;
     }, 'check-inventory')
-      .addFunction('CheckAddress', async (scope: ScopeFacade) => {
-        scope.setValue('shippingAddress', order.shippingAddress);
+      .addFunction('CheckAddress', async (scope) => {
+        scope.shippingAddress = order.shippingAddress;
         addressValid = order.shippingAddress.length > 5;
-        scope.setValue('addressValid', addressValid);
+        scope.addressValid = addressValid;
       }, 'check-address')
+      .setEnableNarrative()
       .build();
 
-    await createExecutor(chart).run();
+    await runAndCollect(chart);
     context.validation = { allInStock, addressValid };
     return allInStock && addressValid ? 'VALIDATED' : 'FAILED';
   })
@@ -105,19 +129,20 @@ const fsm = new OrderStateMachine()
     let total = 0;
     let paymentId = '';
 
-    const chart = flowChart('CalculateTotal', async (scope: ScopeFacade) => {
+    const chart = typedFlowChart<PaymentState>('CalculateTotal', async (scope) => {
       total = order.items.reduce((sum, i) => sum + i.price * i.qty, 0);
-      scope.setValue('total', total);
+      scope.total = total;
     }, 'calculate-total')
-      .addFunction('ChargePayment', async (scope: ScopeFacade) => {
+      .addFunction('ChargePayment', async (scope) => {
         await new Promise((r) => setTimeout(r, 30)); // simulate payment gateway
         paymentId = `PAY-${Date.now()}`;
-        scope.setValue('paymentId', paymentId);
-        scope.setValue('charged', total);
+        scope.paymentId = paymentId;
+        scope.charged = total;
       }, 'charge-payment')
+      .setEnableNarrative()
       .build();
 
-    await createExecutor(chart).run();
+    await runAndCollect(chart);
     context.payment = { total, paymentId };
     return 'PAYMENT_PROCESSED';
   })
@@ -126,21 +151,22 @@ const fsm = new OrderStateMachine()
     let trackingNumber = '';
     let carrier = '';
 
-    const chart = flowChart('CreateLabel', async (scope: ScopeFacade) => {
+    const chart = typedFlowChart<ShippingState>('CreateLabel', async (scope) => {
       await new Promise((r) => setTimeout(r, 20)); // simulate label creation
       trackingNumber = `TRK-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
-      scope.setValue('trackingNumber', trackingNumber);
-      scope.setValue('labelAddress', order.shippingAddress);
+      scope.trackingNumber = trackingNumber;
+      scope.labelAddress = order.shippingAddress;
     }, 'create-label')
-      .addFunction('DispatchCarrier', async (scope: ScopeFacade) => {
+      .addFunction('DispatchCarrier', async (scope) => {
         carrier = 'FastShip';
-        scope.setValue('carrier', carrier);
-        scope.setValue('estimatedDays', 3);
-        scope.setValue('dispatchStatus', `Dispatched ${trackingNumber} via ${carrier}`);
+        scope.carrier = carrier;
+        scope.estimatedDays = 3;
+        scope.dispatchStatus = `Dispatched ${trackingNumber} via ${carrier}`;
       }, 'dispatch-carrier')
+      .setEnableNarrative()
       .build();
 
-    await createExecutor(chart).run();
+    await runAndCollect(chart);
     context.shipping = { trackingNumber, carrier };
     return 'SHIPPED';
   })
@@ -173,9 +199,7 @@ const fsm = new OrderStateMachine()
 
   // Print the combined causal trace across ALL flowcharts
   console.log('\n--- Causal Trace (from FootPrint) ---\n');
-  const combined = new CombinedNarrativeBuilder();
-  const narrative = combined.build([], recorder);
-  narrative.forEach((line) => console.log(`  ${line}`));
+  allNarrativeLines.forEach((line) => console.log(`  ${line}`));
 
   console.log('\nThe FSM handled transitions. FootPrint captured the reasoning.');
   console.log('Feed the trace to an LLM to answer: "Why was this order shipped?"');

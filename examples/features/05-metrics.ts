@@ -11,7 +11,6 @@
 
 import {
   typedFlowChart,
-  createTypedScopeFactory,
   FlowChartExecutor,
   MetricRecorder,
   DebugRecorder,
@@ -66,7 +65,7 @@ const happyChart = typedFlowChart<OrderState>('FetchUser', async (scope) => {
   }, 'save-order')
   .build();
 
-const happyExecutor = new FlowChartExecutor(happyChart, createTypedScopeFactory<OrderState>());
+const happyExecutor = new FlowChartExecutor(happyChart);
 happyExecutor.attachRecorder(metrics);
 await happyExecutor.run();
 
@@ -100,7 +99,7 @@ const errorChart = typedFlowChart<ErrorState>('LoadConfig', async (scope) => {
   .build();
 
 // @ts-expect-error -- setLogger is on FlowChartBuilder, using silent logger pattern
-const errorExecutor = new FlowChartExecutor(errorChart, createTypedScopeFactory<ErrorState>());
+const errorExecutor = new FlowChartExecutor(errorChart);
 errorExecutor.attachRecorder(errorMetrics);
 errorExecutor.attachRecorder(debug);
 

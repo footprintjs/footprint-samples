@@ -11,7 +11,6 @@
 
 import {
   typedFlowChart,
-  createTypedScopeFactory,
   FlowChartBuilder,
   FlowChartExecutor,
   getSubtreeSnapshot,
@@ -62,7 +61,7 @@ class PaymentProcessor implements ComposableRunner<{ amount: number }, { txnId: 
   toFlowChart(): FlowChart { return this.chart; }
 
   async run(input: { amount: number }, options?: RunOptions): Promise<{ txnId: string }> {
-    const executor = new FlowChartExecutor(this.chart, createTypedScopeFactory<PaymentState>());
+    const executor = new FlowChartExecutor(this.chart);
     await executor.run({ input, ...options });
     const snap = executor.getSnapshot();
     return { txnId: (snap?.sharedState?.txnId as string) ?? 'unknown' };
@@ -87,7 +86,7 @@ class InventoryChecker implements ComposableRunner<{ orderId: string }, { inStoc
   toFlowChart(): FlowChart { return this.chart; }
 
   async run(input: { orderId: string }, options?: RunOptions): Promise<{ inStock: boolean }> {
-    const executor = new FlowChartExecutor(this.chart, createTypedScopeFactory<InventoryState>());
+    const executor = new FlowChartExecutor(this.chart);
     await executor.run({ input, ...options });
     const snap = executor.getSnapshot();
     return { inStock: (snap?.sharedState?.inStock as boolean) ?? false };
@@ -113,7 +112,7 @@ const orderChart = typedFlowChart<OrderState>('ReceiveOrder', (scope) => {
   .setEnableNarrative()
   .build();
 
-const executor = new FlowChartExecutor(orderChart, createTypedScopeFactory<OrderState>());
+const executor = new FlowChartExecutor(orderChart);
 const manifest = new ManifestFlowRecorder();
 executor.attachFlowRecorder(manifest);
 

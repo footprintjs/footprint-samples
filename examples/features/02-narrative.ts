@@ -11,7 +11,6 @@
 
 import {
   typedFlowChart,
-  createTypedScopeFactory,
   FlowChartExecutor,
 } from 'footprint';
 
@@ -41,7 +40,7 @@ const chart = typedFlowChart<TempState>('Ingest', async (scope) => {
   }, 'classify')
   .build();
 
-const executor = new FlowChartExecutor(chart, createTypedScopeFactory<TempState>());
+const executor = new FlowChartExecutor(chart);
 await executor.run();
 
 console.log('=== Auto-generated Narrative ===\n');

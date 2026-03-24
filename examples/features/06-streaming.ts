@@ -10,7 +10,6 @@
 
 import {
   typedFlowChart,
-  createTypedScopeFactory,
   FlowChartExecutor,
   type StreamHandlers,
 } from 'footprint';
@@ -75,7 +74,7 @@ const chart = typedFlowChart<SummaryState>('PrepareContext', async (scope) => {
 
 const executor = new FlowChartExecutor(
   chart,
-  createTypedScopeFactory<SummaryState>(),
+,
   undefined, undefined, undefined, undefined,
   streamHandlers,
 );

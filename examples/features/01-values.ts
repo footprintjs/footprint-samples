@@ -13,7 +13,6 @@
 
 import {
   typedFlowChart,
-  createTypedScopeFactory,
   FlowChartExecutor,
 } from 'footprint';
 
@@ -55,7 +54,7 @@ const chart = typedFlowChart<AppState>('SetValues', async (scope) => {
   }, 'read-values')
   .build();
 
-const executor = new FlowChartExecutor(chart, createTypedScopeFactory<AppState>());
+const executor = new FlowChartExecutor(chart);
 await executor.run();
 
 console.log('\nAll value types work with typed property access.');

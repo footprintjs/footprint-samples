@@ -14,7 +14,6 @@
 
 import {
   typedFlowChart,
-  createTypedScopeFactory,
   FlowChartExecutor,
   decide,
 } from 'footprint';
@@ -84,7 +83,7 @@ const chart = typedFlowChart<DeciderState>('LoadCustomer', async (scope) => {
   }, 'calculate-total', 'Calculate final amount after discount')
   .build();
 
-const executor = new FlowChartExecutor(chart, createTypedScopeFactory<DeciderState>());
+const executor = new FlowChartExecutor(chart);
 await executor.run();
 
 console.log('=== Decider with decide() ===\n');
