@@ -74,7 +74,7 @@ const chart = typedFlowChart<SummaryState>('PrepareContext', async (scope) => {
 
 const executor = new FlowChartExecutor(
   chart,
-,
+  undefined,
   undefined, undefined, undefined, undefined,
   streamHandlers,
 );
