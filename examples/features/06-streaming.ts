@@ -9,7 +9,7 @@
  */
 
 import {
-  typedFlowChart,
+  flowChart,
   FlowChartExecutor,
   type StreamHandlers,
 } from 'footprint';
@@ -48,7 +48,7 @@ const streamHandlers: StreamHandlers = {
   },
 };
 
-const chart = typedFlowChart<SummaryState>('PrepareContext', async (scope) => {
+const chart = flowChart<SummaryState>('PrepareContext', async (scope) => {
   scope.patientName = 'Jane Doe';
   scope.temperature = 102.6;
   scope.unit = 'fahrenheit';

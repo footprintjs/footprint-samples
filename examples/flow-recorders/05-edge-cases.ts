@@ -13,7 +13,7 @@
  */
 
 import {
-  typedFlowChart,
+  flowChart,
   
   FlowChartExecutor,
   WindowedNarrativeFlowRecorder,
@@ -34,7 +34,7 @@ interface LinearState {
 }
 
 function buildLoopChart(iterations: number) {
-  return typedFlowChart<LoopState>('Init', async (scope) => {
+  return flowChart<LoopState>('Init', async (scope) => {
     scope.counter = 0;
     scope.target = iterations;
   }, 'init')
@@ -48,7 +48,7 @@ function buildLoopChart(iterations: number) {
 }
 
 function buildNoLoopChart() {
-  return typedFlowChart<LinearState>('A', async (scope) => {
+  return flowChart<LinearState>('A', async (scope) => {
     scope.step = 'a';
   }, 'a')
     .addFunction('B', async (scope) => {

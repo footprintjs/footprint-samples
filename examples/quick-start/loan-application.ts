@@ -11,7 +11,7 @@
  * Try it: https://footprintjs.github.io/footprint-playground/samples/loan-application
  */
 
-import { typedFlowChart, FlowChartExecutor, decide } from 'footprint';
+import { flowChart, FlowChartExecutor, decide } from 'footprint';
 
 (async () => {
 
@@ -89,7 +89,7 @@ interface LoanState {
 
 // ── Flowchart ───────────────────────────────────────────────────────────
 
-const chart = typedFlowChart<LoanState>('ReceiveApplication', async (scope) => {
+const chart = flowChart<LoanState>('ReceiveApplication', async (scope) => {
   const { app } = scope.$getArgs<LoanInput>();
   console.log(`  Received application from ${app.applicantName}`);
 }, 'receive-application', undefined,
@@ -157,7 +157,7 @@ const chart = typedFlowChart<LoanState>('ReceiveApplication', async (scope) => {
       'Flag for human underwriter review with risk summary')
     .setDefault('manual-review')
     .end()
-  .setEnableNarrative()
+
   .build();
 
 // ── Run ─────────────────────────────────────────────────────────────────

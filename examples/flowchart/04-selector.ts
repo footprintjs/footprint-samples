@@ -11,7 +11,7 @@
  */
 
 import {
-  typedFlowChart,
+  flowChart,
   FlowChartExecutor,
   select,
 } from 'footprint';
@@ -40,11 +40,11 @@ const patientDB = new Map([
   }],
 ]);
 
-const chart = typedFlowChart<SelectorState>('LoadPatient', async (scope) => {
+const chart = flowChart<SelectorState>('LoadPatient', async (scope) => {
   scope.patient = patientDB.get('P-101')!;
   scope.screeningResults = [];
 }, 'load-patient')
-  .setEnableNarrative()
+
   .addSelectorFunction('Triage', (scope) => {
     // select() auto-captures which vitals triggered each screening
     return select(scope, [

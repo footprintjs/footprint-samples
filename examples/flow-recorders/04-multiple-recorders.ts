@@ -15,7 +15,7 @@
  */
 
 import {
-  typedFlowChart,
+  flowChart,
   
   FlowChartExecutor,
   NarrativeFlowRecorder,
@@ -29,7 +29,7 @@ interface LoopState {
 }
 
 function buildLoopChart(iterations: number) {
-  return typedFlowChart<LoopState>('Init', async (scope) => {
+  return flowChart<LoopState>('Init', async (scope) => {
     scope.counter = 0;
     scope.target = iterations;
   }, 'init')

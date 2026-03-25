@@ -9,7 +9,7 @@
  * Try it: https://footprintjs.github.io/footprint-playground/samples/linear
  */
 
-import { typedFlowChart,  FlowChartExecutor } from 'footprint';
+import { flowChart,  FlowChartExecutor } from 'footprint';
 
 interface UserState {
   user: { username: string; email: string; joinedAt: string };
@@ -32,13 +32,13 @@ const userDB = new Map([
 
 const emailLog: string[] = [];
 
-const chart = typedFlowChart<UserState>('FetchUser', async (scope) => {
+const chart = flowChart<UserState>('FetchUser', async (scope) => {
   const { userId } = scope.$getArgs<{ userId: number }>();
   const user = userDB.get(userId);
   if (!user) throw new Error(`User #${userId} not found`);
   scope.user = user;
 }, 'fetch-user')
-  .setEnableNarrative()
+
   .addFunction('EnrichProfile', async (scope) => {
     const displayName = scope.user.username.charAt(0).toUpperCase() + scope.user.username.slice(1);
     const daysSinceJoin = Math.floor(

@@ -25,7 +25,7 @@
  */
 
 import {
-  typedFlowChart,
+  flowChart,
   
   FlowChartBuilder,
   FlowChartExecutor,
@@ -130,7 +130,7 @@ const resolverLog: string[] = [];
 
 // -- Orchestrator -- lazy selector with 3 service branches --------------------
 
-const chart = typedFlowChart<OrchestratorState>(
+const chart = flowChart<OrchestratorState>(
   'Parse Request',
   (scope) => {
     scope.requiredServices = ['auth', 'payment'];
@@ -171,7 +171,7 @@ const chart = typedFlowChart<OrchestratorState>(
     'build-response',
     'Aggregate service results into HTTP response',
   )
-  .setEnableNarrative()
+
   .build();
 
 // -- Inspect build-time spec -- lazy nodes are stubs --------------------------

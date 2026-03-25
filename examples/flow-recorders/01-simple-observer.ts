@@ -10,7 +10,7 @@
  */
 
 import {
-  typedFlowChart,
+  flowChart,
   
   FlowChartExecutor,
   type FlowRecorder,
@@ -27,7 +27,7 @@ interface SimpleState {
 
 // ── Build a simple linear chart ──────────────────────────────────────────
 
-const chart = typedFlowChart<SimpleState>('Validate', async (scope) => {
+const chart = flowChart<SimpleState>('Validate', async (scope) => {
   scope.input = 'hello';
   scope.valid = true;
 }, 'validate')

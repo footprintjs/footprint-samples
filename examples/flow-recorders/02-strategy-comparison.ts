@@ -17,7 +17,7 @@
  */
 
 import {
-  typedFlowChart,
+  flowChart,
   
   FlowChartExecutor,
   NarrativeFlowRecorder,
@@ -43,7 +43,7 @@ interface SyncState {
 }
 
 function buildSyncChart(totalBatches: number) {
-  return typedFlowChart<SyncState>(
+  return flowChart<SyncState>(
     'FetchConfig',
     async (scope) => {
       scope.batchesProcessed = 0;

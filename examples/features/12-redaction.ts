@@ -10,7 +10,7 @@
  */
 
 import {
-  typedFlowChart,
+  flowChart,
   FlowChartExecutor,
 } from 'footprint';
 
@@ -35,7 +35,7 @@ interface RegistrationState {
 
   console.log('=== RedactionPolicy (Config-Driven) ===\n');
 
-  const chart = typedFlowChart<RegistrationState>('Register', async (scope) => {
+  const chart = flowChart<RegistrationState>('Register', async (scope) => {
     scope.ssn = '999-88-7777';
     scope.email = 'alice@example.com';
     scope.dbPassword = 'hunter2';
@@ -52,7 +52,7 @@ interface RegistrationState {
       // Runtime gets real values — business logic works normally
       scope.verified = scope.ssn.length > 0 && scope.patient.name !== undefined;
     }, 'process')
-    .setEnableNarrative()
+
     .build();
 
   const executor = new FlowChartExecutor(chart);

@@ -10,7 +10,7 @@
  * Try it: https://footprintjs.github.io/footprint-playground/samples/loops
  */
 
-import { typedFlowChart,  FlowChartExecutor } from 'footprint';
+import { flowChart,  FlowChartExecutor } from 'footprint';
 
 interface LoopState {
   city: string;
@@ -41,13 +41,13 @@ const weatherAPI = {
 
 // -- Flowchart ----------------------------------------------------------------
 
-const chart = typedFlowChart<LoopState>('InitRetry', async (scope) => {
+const chart = flowChart<LoopState>('InitRetry', async (scope) => {
   scope.city = 'Portland';
   scope.attempt = 0;
   scope.maxAttempts = 5;
   scope.lastError = null;
 }, 'init-retry')
-  .setEnableNarrative()
+
   .addFunction('CallAPI', async (scope) => {
     const city = scope.city;
     const attempt = scope.attempt + 1;

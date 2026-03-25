@@ -15,7 +15,7 @@
 
 import { z } from 'zod';
 import {
-  typedFlowChart,
+  flowChart,
   
   FlowChartExecutor,
   InputValidationError,
@@ -36,7 +36,7 @@ async function demoStructuredErrorRecorder() {
   console.log('\n=== A. Custom FlowRecorder — Structured Error Observation ===\n');
 
   // Build a pipeline that validates user input
-  const chart = typedFlowChart<OrderState>('ReceiveOrder', async (scope) => {
+  const chart = flowChart<OrderState>('ReceiveOrder', async (scope) => {
     scope.rawOrder = { customerId: 'C1', items: ['laptop'], total: -50 };
   }, 'receive-order')
     .addFunction('ValidateOrder', async (scope) => {
@@ -113,7 +113,7 @@ interface NarrativeState {
 async function demoNarrativeEnrichment() {
   console.log('\n=== B. Narrative Enrichment — Validation Issues in the Story ===\n');
 
-  const chart = typedFlowChart<NarrativeState>('FetchData', async (scope) => {
+  const chart = flowChart<NarrativeState>('FetchData', async (scope) => {
     scope.payload = { name: 'Bob', age: -5, email: '' };
   }, 'fetch-data')
     .addFunction('Validate', async (scope) => {
@@ -124,7 +124,7 @@ async function demoNarrativeEnrichment() {
       ]);
     }, 'validate')
     .addFunction('Transform', async () => 'transformed', 'transform')
-    .setEnableNarrative()
+
     .build();
 
   const executor = new FlowChartExecutor(chart);

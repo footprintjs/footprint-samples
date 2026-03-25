@@ -13,7 +13,7 @@
  */
 
 import { z } from 'zod';
-import { typedFlowChart,  FlowChartExecutor } from 'footprint';
+import { flowChart,  FlowChartExecutor } from 'footprint';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // A. Schema Validation — fail-fast at the boundary
@@ -26,14 +26,16 @@ interface SchemaState {
 async function demoSchemaValidation() {
   console.log('\n=== A. Schema Validation (fail-fast) ===\n');
 
-  const chart = typedFlowChart<SchemaState>('Process', async () => {
+  const chart = flowChart<SchemaState>('Process', async () => {
     // This stage should NEVER execute with invalid input
     console.log('  Stage executed — this should not happen!');
   }, 'process')
-    .setInputSchema(z.object({
-      amount: z.number().positive(),
-      email: z.string().email(),
-    }))
+    .contract({
+      input: z.object({
+        amount: z.number().positive(),
+        email: z.string().email(),
+      }),
+    })
     .build();
 
   const executor = new FlowChartExecutor(chart);
@@ -79,7 +81,7 @@ interface ReadonlyState {
 async function demoReadonlyGuards() {
   console.log('\n=== B. Readonly Guards (write protection) ===\n');
 
-  const chart = typedFlowChart<ReadonlyState>('Process', async (scope) => {
+  const chart = flowChart<ReadonlyState>('Process', async (scope) => {
     // Read input — works fine
     const { name } = scope.$getArgs<{ name: string }>();
     console.log(`  Read input: name = "${name}"`);
@@ -125,7 +127,7 @@ interface FrozenState {
 async function demoFrozenArgs() {
   console.log('\n=== C. Frozen Args (deep immutability) ===\n');
 
-  const chart = typedFlowChart<FrozenState>('Process', async (scope) => {
+  const chart = flowChart<FrozenState>('Process', async (scope) => {
     const args = scope.$getArgs<{ user: { name: string; address: { city: string } } }>();
 
     // Reading nested values — works fine
@@ -185,7 +187,7 @@ async function demoBeforeAfter() {
   console.log('  OLD PATTERN (dangerous):');
   const sharedData = { score: 0, name: 'Alice' };
 
-  const oldChart = typedFlowChart<OldState>('Stage1', async (scope) => {
+  const oldChart = flowChart<OldState>('Stage1', async (scope) => {
     // Stage1 mutates the shared closure variable
     sharedData.score = 999;
     scope.done1 = true;
@@ -204,7 +206,7 @@ async function demoBeforeAfter() {
   // Each stage gets a frozen copy — mutations are impossible
   console.log('\n  NEW PATTERN (safe):');
 
-  const newChart = typedFlowChart<NewState>('Stage1', async (scope) => {
+  const newChart = flowChart<NewState>('Stage1', async (scope) => {
     const { score } = scope.$getArgs<{ score: number; name: string }>();
     console.log(`    Stage1 reads score = ${score}`);
     // Cannot mutate input — write to a SEPARATE key instead

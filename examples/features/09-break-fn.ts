@@ -14,7 +14,7 @@
  */
 
 import {
-  typedFlowChart,
+  flowChart,
   FlowChartExecutor,
 } from 'footprint';
 
@@ -34,7 +34,7 @@ interface PaymentState {
 
 console.log('=== Scenario 1: Validation Gate ===\n');
 
-const validationChart = typedFlowChart<PaymentState>(
+const validationChart = flowChart<PaymentState>(
   'ValidateInput',
   async (scope) => {
     scope.amount = 75_000;
@@ -48,7 +48,7 @@ const validationChart = typedFlowChart<PaymentState>(
   },
   'validate-input',
 )
-  .setEnableNarrative()
+
   .addFunction('ProcessPayment', async (scope) => {
     // This never runs when $break() is called
     scope.processed = true;
@@ -77,7 +77,7 @@ interface BudgetState {
 
 console.log('=== Scenario 2: Budget Limit ===\n');
 
-const budgetChart = typedFlowChart<BudgetState>(
+const budgetChart = flowChart<BudgetState>(
   'Init',
   async (scope) => {
     scope.budget = 100;
@@ -86,7 +86,7 @@ const budgetChart = typedFlowChart<BudgetState>(
   },
   'init',
 )
-  .setEnableNarrative()
+
   .addFunction('BuyItem1', async (scope) => {
     scope.spent = scope.spent + 30;
     scope.items = [...scope.items, 'Widget A ($30)'];

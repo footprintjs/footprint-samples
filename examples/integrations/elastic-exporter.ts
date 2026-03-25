@@ -15,7 +15,7 @@
  */
 
 import {
-  typedFlowChart,
+  flowChart,
   FlowChartExecutor,
   type FlowRecorder,
   type FlowStageEvent,
@@ -182,7 +182,7 @@ interface RequestState {
 
 // ── Demo flowchart ──────────────────────────────────────────────────────
 
-const validationFlow = typedFlowChart<ValidationState>('CheckFormat', (scope) => {
+const validationFlow = flowChart<ValidationState>('CheckFormat', (scope) => {
   scope.formatOk = true;
 }, 'check-format', undefined, 'Validates input format')
   .addFunction('CheckRules', (scope) => {
@@ -190,7 +190,7 @@ const validationFlow = typedFlowChart<ValidationState>('CheckFormat', (scope) =>
   }, 'check-rules', 'Applies business rules')
   .build();
 
-const chart = typedFlowChart<RequestState>('Receive', (scope) => {
+const chart = flowChart<RequestState>('Receive', (scope) => {
   scope.requestId = 'REQ-001';
 }, 'receive', undefined, 'Receives incoming request')
   .addSubFlowChartNext('sf-validate', validationFlow, 'Validation')
@@ -208,7 +208,7 @@ const chart = typedFlowChart<RequestState>('Receive', (scope) => {
   .addFunction('Respond', (scope) => {
     scope.responded = true;
   }, 'respond', 'Sends response')
-  .setEnableNarrative()
+
   .build();
 
 // ── Run ─────────────────────────────────────────────────────────────────

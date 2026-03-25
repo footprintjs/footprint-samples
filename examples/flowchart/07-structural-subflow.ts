@@ -19,7 +19,7 @@
  *   Inner:   (already executed -- only the structure is attached)
  */
 
-import { typedFlowChart, FlowChartExecutor } from 'footprint';
+import { flowChart, FlowChartExecutor } from 'footprint';
 
 (async () => {
 
@@ -52,7 +52,7 @@ interface RequestState {
   outcome: string;
 }
 
-const chart = typedFlowChart<RequestState>(
+const chart = flowChart<RequestState>(
   'REQUEST_START',
   async (scope) => {
     scope.method = 'POST';
@@ -63,7 +63,7 @@ const chart = typedFlowChart<RequestState>(
   undefined,
   'Capture request metadata and assign correlation ID',
 )
-  .setEnableNarrative()
+
   .addFunction(
     'HANDLER',
     async (scope) => {

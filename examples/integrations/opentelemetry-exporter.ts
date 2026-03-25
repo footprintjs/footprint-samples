@@ -15,7 +15,7 @@
  */
 
 import {
-  typedFlowChart,
+  flowChart,
   FlowChartExecutor,
   type FlowRecorder,
   type FlowStageEvent,
@@ -215,7 +215,7 @@ interface IngestionState {
 
 // ── Demo flowchart ──────────────────────────────────────────────────────
 
-const subChart = typedFlowChart<ETLState>('FetchData', (scope) => {
+const subChart = flowChart<ETLState>('FetchData', (scope) => {
   scope.data = [1, 2, 3];
 }, 'fetch-data', undefined, 'Fetches data from source')
   .addFunction('Transform', (scope) => {
@@ -223,14 +223,14 @@ const subChart = typedFlowChart<ETLState>('FetchData', (scope) => {
   }, 'transform', 'Transforms fetched data')
   .build();
 
-const chart = typedFlowChart<IngestionState>('Ingest', (scope) => {
+const chart = flowChart<IngestionState>('Ingest', (scope) => {
   scope.source = 'api';
 }, 'ingest', undefined, 'Starts data ingestion')
   .addSubFlowChartNext('sf-etl', subChart, 'ETL Pipeline')
   .addFunction('Store', (scope) => {
     scope.stored = true;
   }, 'store', 'Persists to database')
-  .setEnableNarrative()
+
   .build();
 
 // ── Run ─────────────────────────────────────────────────────────────────

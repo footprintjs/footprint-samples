@@ -1,7 +1,7 @@
 /**
  * Feature: Auto-generated Narrative
  *
- * Call setEnableNarrative() on the builder. The library automatically
+ * Call recorder(narrative()) on the builder. The library automatically
  * observes every read/write and merges it with control-flow events.
  * Call executor.getNarrative() to get the full causal trace — zero setup.
  *
@@ -10,7 +10,7 @@
  */
 
 import {
-  typedFlowChart,
+  flowChart,
   FlowChartExecutor,
 } from 'footprint';
 
@@ -24,11 +24,11 @@ interface TempState {
 
 (async () => {
 
-const chart = typedFlowChart<TempState>('Ingest', async (scope) => {
+const chart = flowChart<TempState>('Ingest', async (scope) => {
   scope.temperature = 38.5;
   scope.unit = 'celsius';
 }, 'ingest')
-  .setEnableNarrative()
+
   .addFunction('Convert', async (scope) => {
     if (scope.unit === 'celsius') {
       scope.temperatureF = scope.temperature * 1.8 + 32;
@@ -46,5 +46,5 @@ await executor.run();
 console.log('=== Auto-generated Narrative ===\n');
 executor.getNarrative().forEach((line) => console.log(`  ${line}`));
 console.log('\nNo casts, no scopeFactory boilerplate.');
-console.log('Just typedFlowChart<T>() + setEnableNarrative() + getNarrative().');
+console.log('Just flowChart<T>() + recorder(narrative()) + getNarrative().');
 })().catch(console.error);

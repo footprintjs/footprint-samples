@@ -10,7 +10,7 @@
  * Try it: https://footprintjs.github.io/footprint-playground/samples/subflow
  */
 
-import { typedFlowChart,  FlowChartBuilder, FlowChartExecutor, type TypedScope } from 'footprint';
+import { flowChart,  FlowChartBuilder, FlowChartExecutor, type TypedScope } from 'footprint';
 
 interface SubflowPaymentState {
   orderTotal: number;
@@ -95,13 +95,13 @@ const paymentSubflow = new FlowChartBuilder<any, TypedScope<SubflowPaymentState>
 
 // -- Build the Parent Flowchart -----------------------------------------------
 
-const chart = typedFlowChart<ParentOrderState>('CreateOrder', async (scope) => {
+const chart = flowChart<ParentOrderState>('CreateOrder', async (scope) => {
   scope.orderId = 'ORD-42';
   scope.orderTotal = 129.99;
   scope.customerName = 'Eve';
   scope.cardLast4 = '4242';
 }, 'create-order')
-  .setEnableNarrative()
+
   .addSubFlowChartNext('payment', paymentSubflow, 'ProcessPayment', {
     inputMapper: (parentScope: any) => ({
       orderTotal: parentScope.orderTotal,

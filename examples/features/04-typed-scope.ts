@@ -9,7 +9,7 @@
  */
 
 import {
-  typedFlowChart,
+  flowChart,
   FlowChartExecutor,
 } from 'footprint';
 
@@ -24,12 +24,12 @@ interface PatientState {
 
 (async () => {
 
-const chart = typedFlowChart<PatientState>('Intake', async (scope) => {
+const chart = flowChart<PatientState>('Intake', async (scope) => {
   scope.patientName = 'Jane Doe';
   scope.temperature = 39.2;
   scope.unit = 'celsius';
 }, 'intake')
-  .setEnableNarrative()
+
   .addFunction('ConvertTemp', async (scope) => {
     if (scope.unit === 'celsius') {
       scope.temperatureF = scope.temperature * 1.8 + 32;

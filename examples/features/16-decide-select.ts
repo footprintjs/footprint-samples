@@ -11,7 +11,7 @@
  */
 
 import {
-  typedFlowChart,
+  flowChart,
   FlowChartExecutor,
   decide,
   select,
@@ -39,12 +39,12 @@ interface ScreeningState {
 
 console.log('=== Scenario 1: decide() with filter rules ===\n');
 
-const loanChart = typedFlowChart<LoanState>('LoadApplication', async (scope) => {
+const loanChart = flowChart<LoanState>('LoadApplication', async (scope) => {
   scope.creditScore = 750;
   scope.dti = 0.38;
   scope.employmentStatus = 'employed';
 }, 'load-app')
-  .setEnableNarrative()
+
   .addDeciderFunction('ClassifyRisk', (scope) => {
     return decide(scope, [
       {
@@ -82,12 +82,12 @@ loanExecutor.getNarrative().forEach((line) => console.log(`  ${line}`));
 
 console.log('\n=== Scenario 2: decide() with function rules ===\n');
 
-const functionChart = typedFlowChart<LoanState>('LoadApp', async (scope) => {
+const functionChart = flowChart<LoanState>('LoadApp', async (scope) => {
   scope.creditScore = 650;
   scope.dti = 0.50;
   scope.employmentStatus = 'self-employed';
 }, 'load-app-2')
-  .setEnableNarrative()
+
   .addDeciderFunction('ClassifyRisk', (scope) => {
     return decide(scope, [
       {
@@ -119,13 +119,13 @@ fnExecutor.getNarrative().forEach((line) => console.log(`  ${line}`));
 
 console.log('\n=== Scenario 3: select() for multi-match screening ===\n');
 
-const screeningChart = typedFlowChart<ScreeningState>('LoadVitals', async (scope) => {
+const screeningChart = flowChart<ScreeningState>('LoadVitals', async (scope) => {
   scope.glucose = 128;
   scope.systolicBP = 148;
   scope.bmi = 25;
   scope.results = [];
 }, 'load-vitals')
-  .setEnableNarrative()
+
   .addSelectorFunction('Triage', (scope) => {
     return select(scope, [
       { when: { glucose: { gt: 100 } }, then: 'diabetes', label: 'Elevated glucose' },

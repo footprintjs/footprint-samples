@@ -9,7 +9,7 @@
  */
 
 import {
-  typedFlowChart,
+  flowChart,
   FlowChartExecutor,
   defineContract,
   decide,
@@ -26,11 +26,11 @@ interface OrderState {
 
 (async () => {
 
-  const chart = typedFlowChart<OrderState>('ReceiveOrder', async (scope) => {
+  const chart = flowChart<OrderState>('ReceiveOrder', async (scope) => {
     // Input arrives via $getArgs() — separate from state
     scope.$log('Order received');
   }, 'receive-order')
-    .setEnableNarrative()
+
     .addFunction('CalculateTotal', async (scope) => {
       const { quantity, unitPrice } = scope.$getArgs<{ quantity: number; unitPrice: number }>();
       scope.subtotal = quantity * unitPrice;

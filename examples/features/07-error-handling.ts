@@ -12,7 +12,7 @@
  */
 
 import {
-  typedFlowChart,
+  flowChart,
   FlowChartExecutor,
   MetricRecorder,
   DebugRecorder,
@@ -65,7 +65,7 @@ const metrics = new MetricRecorder();
 const debug = new DebugRecorder({ verbosity: 'verbose' });
 const alerts = new AlertRecorder();
 
-const chart = typedFlowChart<TransferState>('ValidateInput', async (scope) => {
+const chart = flowChart<TransferState>('ValidateInput', async (scope) => {
   await new Promise((r) => setTimeout(r, 15));
   scope.userId = 'user-42';
   scope.payload = { action: 'transfer', amount: 50000 };
@@ -111,7 +111,7 @@ for (const w of alerts.writes) {
 
 console.log('\n--- Scenario 2: Graceful error inside a stage ---\n');
 
-const chart2 = typedFlowChart<FallbackState>('FetchPrimary', async (scope) => {
+const chart2 = flowChart<FallbackState>('FetchPrimary', async (scope) => {
   try {
     await new Promise((r) => setTimeout(r, 30));
     throw new Error('Primary API unavailable');

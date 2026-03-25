@@ -2,7 +2,7 @@
  * Feature: TypedScope Patterns
  *
  * Three ways to use TypedScope:
- * 1. typedFlowChart<T>() — simplest, recommended
+ * 1. flowChart<T>() — simplest, recommended
  * 2. — with FlowChartBuilder
  * 3. $-methods — escape hatches for dynamic/advanced use
  *
@@ -11,7 +11,7 @@
  */
 
 import {
-  typedFlowChart,
+  flowChart,
   FlowChartBuilder,
   FlowChartExecutor,
   MetricRecorder,
@@ -27,11 +27,11 @@ interface OrderState {
 
 (async () => {
 
-// ── Pattern 1: typedFlowChart<T>() — simplest ──────────────────────────
+// ── Pattern 1: flowChart<T>() — simplest ──────────────────────────
 
-console.log('=== Pattern 1: typedFlowChart<T>() (recommended) ===\n');
+console.log('=== Pattern 1: flowChart<T>() (recommended) ===\n');
 
-const chart1 = typedFlowChart<OrderState>('Receive', async (scope) => {
+const chart1 = flowChart<OrderState>('Receive', async (scope) => {
   scope.orderId = 'ORD-42';
   scope.items = ['Widget', 'Gadget'];
 }, 'receive')
@@ -40,7 +40,7 @@ const chart1 = typedFlowChart<OrderState>('Receive', async (scope) => {
     scope.total = scope.itemCount * 29.99;
     scope.status = 'processed';
   }, 'process')
-  .setEnableNarrative()
+
   .build();
 
 const executor1 = new FlowChartExecutor(chart1);
@@ -77,7 +77,7 @@ console.log('  Writes:', metrics.getMetrics().totalWrites);
 
 console.log('\n=== Pattern 3: $-methods (escape hatches) ===\n');
 
-const chart3 = typedFlowChart<OrderState>('Dynamic', async (scope) => {
+const chart3 = flowChart<OrderState>('Dynamic', async (scope) => {
   // Use typed access for known fields
   scope.orderId = 'ORD-dynamic';
 
@@ -101,7 +101,7 @@ console.log('  State:', executor3.getSnapshot().sharedState);
 // ── Summary ─────────────────────────────────────────────────────────────
 
 console.log('\n=== Summary ===');
-console.log('  Pattern 1: typedFlowChart<T>()                    -- zero boilerplate');
+console.log('  Pattern 1: flowChart<T>()                    -- zero boilerplate');
 console.log('  Pattern 2: FlowChartBuilder +-- with recorder attachment');
 console.log('  Pattern 3: $-methods                               -- dynamic keys, redaction, diagnostics');
 

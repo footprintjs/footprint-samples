@@ -9,7 +9,7 @@
  */
 
 import {
-  typedFlowChart,
+  flowChart,
   FlowChartExecutor,
   type FlowRecorder,
   type FlowStageEvent,
@@ -154,7 +154,7 @@ interface OrderState {
 
 // ── Demo flowchart ──────────────────────────────────────────────────────
 
-const subChart = typedFlowChart<PaymentState>('ValidatePayment', (scope) => {
+const subChart = flowChart<PaymentState>('ValidatePayment', (scope) => {
   scope.paymentValid = true;
 }, 'validate-payment', undefined, 'Validates payment details')
   .addFunction('ChargeCard', (scope) => {
@@ -162,7 +162,7 @@ const subChart = typedFlowChart<PaymentState>('ValidatePayment', (scope) => {
   }, 'charge-card', 'Charges the credit card')
   .build();
 
-const chart = typedFlowChart<OrderState>('ReceiveOrder', (scope) => {
+const chart = flowChart<OrderState>('ReceiveOrder', (scope) => {
   scope.orderId = 'ORD-12345';
 }, 'receive-order', undefined, 'Receives incoming order')
   .addDeciderFunction('RiskCheck', (scope) => {
@@ -180,7 +180,7 @@ const chart = typedFlowChart<OrderState>('ReceiveOrder', (scope) => {
   .addFunction('Confirm', (scope) => {
     scope.confirmed = true;
   }, 'confirm', 'Sends confirmation')
-  .setEnableNarrative()
+
   .build();
 
 // ── Run ─────────────────────────────────────────────────────────────────

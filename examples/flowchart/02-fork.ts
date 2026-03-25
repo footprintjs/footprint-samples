@@ -10,7 +10,7 @@
  * Try it: https://footprintjs.github.io/footprint-playground/samples/fork
  */
 
-import { typedFlowChart,  FlowChartExecutor } from 'footprint';
+import { flowChart,  FlowChartExecutor } from 'footprint';
 
 interface Order {
   customerId: string;
@@ -57,12 +57,12 @@ const fraudService = {
 
 // -- Flowchart ----------------------------------------------------------------
 
-const chart = typedFlowChart<ForkState>('LoadOrder', async (scope) => {
+const chart = flowChart<ForkState>('LoadOrder', async (scope) => {
   const order = orderDB.get('ORD-001')!;
   scope.order = order;
   scope.orderId = 'ORD-001';
 }, 'load-order')
-  .setEnableNarrative()
+
   .addListOfFunction([
     {
       id: 'CheckInventory',

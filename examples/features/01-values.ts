@@ -12,7 +12,7 @@
  */
 
 import {
-  typedFlowChart,
+  flowChart,
   FlowChartExecutor,
 } from 'footprint';
 
@@ -30,7 +30,7 @@ interface AppState {
 
 (async () => {
 
-const chart = typedFlowChart<AppState>('SetValues', async (scope) => {
+const chart = flowChart<AppState>('SetValues', async (scope) => {
   // Primitives — typed, no casts
   scope.name = 'Alice';
   scope.age = 30;

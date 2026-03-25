@@ -10,7 +10,7 @@
  */
 
 import {
-  typedFlowChart,
+  flowChart,
   FlowChartExecutor,
   type Recorder,
   type ReadEvent,
@@ -61,7 +61,7 @@ interface OrderState {
 
 const auditRecorder = new AuditRecorder();
 
-const chart = typedFlowChart<OrderState>('Input', async (scope) => {
+const chart = flowChart<OrderState>('Input', async (scope) => {
   scope.userId = 'u-123';
   scope.action = 'purchase';
   scope.amount = 99.99;

@@ -10,7 +10,7 @@
  */
 
 import {
-  typedFlowChart,
+  flowChart,
   FlowChartExecutor,
   MetricRecorder,
   DebugRecorder,
@@ -44,7 +44,7 @@ console.log('=== Pipeline 1: Happy Path ===\n');
 
 const metrics = new MetricRecorder();
 
-const happyChart = typedFlowChart<OrderState>('FetchUser', async (scope) => {
+const happyChart = flowChart<OrderState>('FetchUser', async (scope) => {
   await delay(60);
   scope.user = { id: 1, name: 'Alice', tier: 'premium' };
 }, 'fetch-user')
@@ -84,7 +84,7 @@ const errorMetrics = new MetricRecorder();
 const debug = new DebugRecorder({ verbosity: 'verbose' });
 const silentLogger = { info() {}, log() {}, debug() {}, warn() {}, error() {} };
 
-const errorChart = typedFlowChart<ErrorState>('LoadConfig', async (scope) => {
+const errorChart = flowChart<ErrorState>('LoadConfig', async (scope) => {
   await delay(20);
   scope.apiUrl = 'https://api.example.com';
   scope.retries = 3;

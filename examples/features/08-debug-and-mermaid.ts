@@ -9,7 +9,7 @@
  */
 
 import {
-  typedFlowChart,
+  flowChart,
   FlowChartExecutor,
   DebugRecorder,
 } from 'footprint';
@@ -28,7 +28,7 @@ interface TextState {
 
 const debug = new DebugRecorder({ verbosity: 'verbose' });
 
-const builder = typedFlowChart<TextState>('Ingest', async (scope) => {
+const builder = flowChart<TextState>('Ingest', async (scope) => {
   scope.rawText = 'The quick brown fox jumps over the lazy dog';
   scope.source = 'user-input';
 }, 'ingest')
