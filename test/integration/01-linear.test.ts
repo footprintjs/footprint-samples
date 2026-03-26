@@ -4,17 +4,19 @@
  * Verifies that a simple 3-stage linear pipeline produces the expected
  * narrative trace. Uses a fixed system time so memberDays is deterministic.
  */
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { flowChart, FlowChartExecutor } from 'footprint';
 
 const FIXED_DATE = new Date('2026-01-01T00:00:00.000Z');
 
 describe('Linear Pipeline — flowchart/01-linear', () => {
-  beforeAll(() => vi.useFakeTimers());
-  afterAll(() => vi.useRealTimers());
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(FIXED_DATE);
+  });
+  afterEach(() => vi.useRealTimers());
 
   it('narrative matches snapshot for userId=42 (alice, veteran member)', async () => {
-    vi.setSystemTime(FIXED_DATE);
 
     interface UserState {
       user: { username: string; email: string; joinedAt: string };

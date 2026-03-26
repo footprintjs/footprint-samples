@@ -70,6 +70,7 @@ const allNarrativeLines: string[] = [];
 /** Helper: create an executor, run it, and collect its narrative. */
 async function runAndCollect(chart: any): Promise<void> {
   const executor = new FlowChartExecutor(chart);
+  executor.enableNarrative();
   await executor.run();
   allNarrativeLines.push(...executor.getNarrative());
 }
