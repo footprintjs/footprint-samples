@@ -99,6 +99,7 @@ const chart = flowChart<ForkState>('LoadOrder', async (scope) => {
 // -- Run ----------------------------------------------------------------------
 
 const executor = new FlowChartExecutor(chart);
+executor.enableNarrative();
 await executor.run();
 
 console.log('=== Fork (Parallel Branches) ===\n');

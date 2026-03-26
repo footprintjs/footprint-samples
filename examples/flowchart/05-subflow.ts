@@ -107,6 +107,13 @@ const chart = flowChart<ParentOrderState>('CreateOrder', async (scope) => {
       orderTotal: parentScope.orderTotal,
       cardLast4: parentScope.cardLast4,
     }),
+    outputMapper: (subflowOutput: any) => ({
+      cardValid: subflowOutput.cardValid,
+      cardNetwork: subflowOutput.cardNetwork,
+      paymentStatus: subflowOutput.paymentStatus,
+      transactionId: subflowOutput.transactionId,
+      receiptSent: subflowOutput.receiptSent,
+    }),
   })
   .addFunction('ShipOrder', async (scope) => {
     const status = scope.paymentStatus!;
@@ -127,6 +134,7 @@ const chart = flowChart<ParentOrderState>('CreateOrder', async (scope) => {
 // -- Run ----------------------------------------------------------------------
 
 const executor = new FlowChartExecutor(chart);
+executor.enableNarrative();
 await executor.run();
 
 console.log('\n=== Subflow (Nested Pipeline) ===\n');

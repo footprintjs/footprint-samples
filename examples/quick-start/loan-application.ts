@@ -163,6 +163,7 @@ const chart = flowChart<LoanState>('ReceiveApplication', async (scope) => {
 // ── Run ─────────────────────────────────────────────────────────────────
 
 const executor = new FlowChartExecutor(chart);
+executor.enableNarrative();
 await executor.run({ input });
 
 console.log('=== Loan Application — Causal Trace ===\n');

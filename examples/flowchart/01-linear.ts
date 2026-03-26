@@ -60,6 +60,7 @@ const chart = flowChart<UserState>('FetchUser', async (scope) => {
   .build();
 
 const executor = new FlowChartExecutor(chart);
+executor.enableNarrative();
 await executor.run({ input });
 
 console.log('=== Linear Pipeline ===\n');

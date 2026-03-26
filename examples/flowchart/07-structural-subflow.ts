@@ -96,6 +96,7 @@ const chart = flowChart<RequestState>(
   .build();
 
 const executor = new FlowChartExecutor(chart);
+executor.enableNarrative();
 await executor.run();
 
 console.log('=== Structural-Only Dynamic Subflow ===\n');

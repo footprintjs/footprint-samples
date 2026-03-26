@@ -104,6 +104,7 @@ const chart = flowChart<SelectorState>('LoadPatient', async (scope) => {
   .build();
 
 const executor = new FlowChartExecutor(chart);
+executor.enableNarrative();
 await executor.run();
 
 console.log('\n=== Selector with select() ===\n');

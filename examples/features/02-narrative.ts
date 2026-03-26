@@ -41,6 +41,7 @@ const chart = flowChart<TempState>('Ingest', async (scope) => {
   .build();
 
 const executor = new FlowChartExecutor(chart);
+executor.enableNarrative();
 await executor.run();
 
 console.log('=== Auto-generated Narrative ===\n');

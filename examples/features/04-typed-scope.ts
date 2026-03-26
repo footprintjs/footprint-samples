@@ -43,6 +43,7 @@ const chart = flowChart<PatientState>('Intake', async (scope) => {
   .build();
 
 const executor = new FlowChartExecutor(chart);
+executor.enableNarrative();
 await executor.run();
 
 console.log('=== TypedScope — Typed Property Access ===\n');

@@ -84,6 +84,7 @@ interface OrderState {
   console.log('\n=== Pipeline Execution ===\n');
 
   const executor = new FlowChartExecutor(chart);
+  executor.enableNarrative();
   await executor.run({
     input: { item: 'Widget Pro', quantity: 3, unitPrice: 29.99 },
   });

@@ -1,0 +1,31 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Subflow Pipeline — flowchart/05-subflow > successful payment path — narrative matches snapshot 1`] = `
+[
+  "Stage 1: The process began with CreateOrder.",
+  "  Step 1: Write orderId = "ORD-42"",
+  "  Step 2: Write orderTotal = 129.99",
+  "  Step 3: Write customerName = "Eve"",
+  "  Step 4: Write cardLast4 = "4242"",
+  "Entering the ProcessPayment subflow: Verify card details.",
+  "Stage 1: The process began: Verify card details.",
+  "  Step 1: Read cardLast4 = "4242"",
+  "  Step 2: Write cardValid = true",
+  "  Step 3: Write cardNetwork = "Visa"",
+  "Stage 2: Next step: Charge the customer card.",
+  "  Step 1: Read cardValid = true",
+  "  Step 2: Read orderTotal = 129.99",
+  "  Step 3: Write paymentStatus = "charged"",
+  "  Step 4: Write transactionId = "TXN-TEST-001"",
+  "Stage 3: Next step: Send transaction receipt.",
+  "  Step 1: Read paymentStatus = "charged"",
+  "  Step 2: Write receiptSent = true",
+  "Exiting the ProcessPayment subflow.",
+  "Stage 2: Next step: Create shipping label.",
+  "  Step 1: Read paymentStatus = "charged"",
+  "  Step 2: Read orderId = "ORD-42"",
+  "  Step 3: Write tracking = "TRK-TEST-001"",
+  "  Step 4: Write carrier = "FedEx"",
+  "  Step 5: Write shipmentStatus = "shipped"",
+]
+`;

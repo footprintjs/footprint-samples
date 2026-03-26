@@ -1,0 +1,22 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Decider with decide() — flowchart/03-decider > premium customer takes premium branch — narrative matches snapshot 1`] = `
+[
+  "Stage 1: The process began with LoadCustomer.",
+  "  Step 1: Write customer = {name, plan, totalSpend, since}",
+  "  Step 2: Write cartAmount = 150",
+  "Stage 2: Next step: Classify customer tier.",
+  "  Step 1: Read customer = {name, plan, totalSpend, since}",
+  "  Step 2: Read customer = {name, plan, totalSpend, since}",
+  "[Condition]: It examined "Premium with high spend": customer={name, plan, totalSpend, since}, customer={name, plan, totalSpend, since}, and chose ApplyLoyaltyDiscount.",
+  "Stage 3: Next step: Apply loyalty discount.",
+  "  Step 1: Read customer = {name, plan, totalSpend, since}",
+  "  Step 2: Write discountPct = 15",
+  "  Step 3: Read discountPct = 15",
+  "  Step 4: Write message = "Thank you for 3 years! 15% loyalty discount."",
+  "Stage 4: Next step: Calculate final amount after discount.",
+  "  Step 1: Read cartAmount = 150",
+  "  Step 2: Read discountPct = 15",
+  "  Step 3: Write finalAmount = 127.5",
+]
+`;

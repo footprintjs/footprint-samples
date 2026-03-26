@@ -44,6 +44,7 @@ const chart1 = flowChart<OrderState>('Receive', async (scope) => {
   .build();
 
 const executor1 = new FlowChartExecutor(chart1);
+executor1.enableNarrative();
 await executor1.run();
 
 console.log('  Result:', executor1.getSnapshot().sharedState.status);

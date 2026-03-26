@@ -1,0 +1,56 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`decide() / select() Evidence Capture — features/16-decide-select > decide() with filter rules > approved path: narrative shows operator + threshold evidence 1`] = `
+[
+  "Stage 1: The process began with LoadApplication.",
+  "  Step 1: Write creditScore = 750",
+  "  Step 2: Write dti = 0.38",
+  "  Step 3: Write employmentStatus = "employed"",
+  "Stage 2: Next step: Evaluate loan risk.",
+  "  Step 1: Read creditScore = 750",
+  "  Step 2: Read dti = 0.38",
+  "[Condition]: It evaluated Rule 0 "Good credit + low DTI": creditScore 750 gt 700 ✓, dti 0.38 lt 0.43 ✓, and chose Approve.",
+  "Stage 3: Next, it moved on to Approve.",
+  "  Step 1: Write decision = "Approved - excellent profile"",
+]
+`;
+
+exports[`decide() / select() Evidence Capture — features/16-decide-select > decide() with function rules > manual-review path: function evidence shows which keys were read 1`] = `
+[
+  "Stage 1: The process began with LoadApp.",
+  "  Step 1: Write creditScore = 650",
+  "  Step 2: Write dti = 0.5",
+  "  Step 3: Write employmentStatus = "self-employed"",
+  "Stage 2: Next, it moved on to ClassifyRisk.",
+  "  Step 1: Read creditScore = 650",
+  "  Step 2: Read creditScore = 650",
+  "[Condition]: It examined "Marginal - needs review": creditScore=650, and chose Review.",
+  "Stage 3: Next, it moved on to Review.",
+  "  Step 1: Write decision = "Manual review"",
+]
+`;
+
+exports[`decide() / select() Evidence Capture — features/16-decide-select > select() for multi-match > selects diabetes + hypertension but not obesity 1`] = `
+[
+  "Stage 1: The process began with LoadVitals.",
+  "  Step 1: Write glucose = 128",
+  "  Step 2: Write systolicBP = 148",
+  "  Step 3: Write bmi = 25",
+  "  Step 4: Write results = []",
+  "[Selected]: 2 of 3 paths selected: diabetes "Elevated glucose" (glucose 128 gt 100 ✓); hypertension "High BP" (systolicBP 148 gt 140 ✓).",
+  "[Parallel]: Forking into 2 parallel paths: DiabetesScreen, BPCheck.",
+  "Stage 2: Next, it moved on to DiabetesScreen.",
+  "  Step 1: Read results = []",
+  "  Step 2: Read results = []",
+  "  Step 3: Read results = []",
+  "  Step 4: Read glucose = 128",
+  "  Step 5: Write results = (1 item)",
+  "Stage 3: Next, it moved on to BPCheck.",
+  "  Step 1: Read results = []",
+  "  Step 2: Read results = []",
+  "  Step 3: Read results = []",
+  "  Step 4: Read systolicBP = 148",
+  "  Step 5: Write results = (1 item)",
+  "Stage 4: Next, it moved on to Report.",
+]
+`;

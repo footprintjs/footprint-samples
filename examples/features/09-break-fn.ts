@@ -61,6 +61,7 @@ const validationChart = flowChart<PaymentState>(
   .build();
 
 const executor1 = new FlowChartExecutor(validationChart);
+executor1.enableNarrative();
 await executor1.run();
 
 executor1.getNarrative().forEach((line) => console.log(`  ${line}`));
@@ -118,6 +119,7 @@ const budgetChart = flowChart<BudgetState>(
   .build();
 
 const executor2 = new FlowChartExecutor(budgetChart);
+executor2.enableNarrative();
 await executor2.run();
 
 executor2.getNarrative().forEach((line) => console.log(`  ${line}`));

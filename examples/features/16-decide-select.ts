@@ -73,6 +73,7 @@ const loanChart = flowChart<LoanState>('LoadApplication', async (scope) => {
   .build();
 
 const loanExecutor = new FlowChartExecutor(loanChart);
+loanExecutor.enableNarrative();
 await loanExecutor.run();
 
 console.log('Narrative (filter evidence shows operators + thresholds):');
@@ -110,6 +111,7 @@ const functionChart = flowChart<LoanState>('LoadApp', async (scope) => {
   .build();
 
 const fnExecutor = new FlowChartExecutor(functionChart);
+fnExecutor.enableNarrative();
 await fnExecutor.run();
 
 console.log('Narrative (function evidence shows which keys were read):');
@@ -150,6 +152,7 @@ const screeningChart = flowChart<ScreeningState>('LoadVitals', async (scope) => 
   .build();
 
 const screeningExecutor = new FlowChartExecutor(screeningChart);
+screeningExecutor.enableNarrative();
 await screeningExecutor.run();
 
 console.log('\nNarrative:');

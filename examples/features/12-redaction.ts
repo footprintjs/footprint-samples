@@ -64,6 +64,7 @@ interface RegistrationState {
     fields: { patient: ['ssn', 'dob', 'address.zip'] }, // nested field scrubbing
   });
 
+  executor.enableNarrative();
   await executor.run();
 
   console.log('Narrative (policy auto-redacts):');

@@ -84,6 +84,7 @@ const chart = flowChart<DeciderState>('LoadCustomer', async (scope) => {
   .build();
 
 const executor = new FlowChartExecutor(chart);
+executor.enableNarrative();
 await executor.run();
 
 console.log('=== Decider with decide() ===\n');

@@ -4,6 +4,9 @@
   "private": true,
   "description": "Runnable examples for the footprint library",
   "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:update": "vitest run -u",
     "quick-start": "npx tsx examples/quick-start/loan-application.ts",
     "feature:values": "npx tsx examples/features/01-values.ts",
     "feature:narrative": "npx tsx examples/features/02-narrative.ts",
@@ -48,6 +51,7 @@
   },
   "devDependencies": {
     "tsx": "^4.7.0",
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "vitest": "^4.1.1"
   }
 }

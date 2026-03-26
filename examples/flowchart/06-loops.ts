@@ -92,6 +92,7 @@ const chart = flowChart<LoopState>('InitRetry', async (scope) => {
 // -- Run ----------------------------------------------------------------------
 
 const executor = new FlowChartExecutor(chart);
+executor.enableNarrative();
 await executor.run();
 
 console.log('\n=== Loops (Retry with Backoff) ===\n');
