@@ -1,0 +1,25 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Loan demo — snapshot (default demo scenario) > matches snapshot for approved applicant 1`] = `
+{
+  "creditTier": "excellent",
+  "decision": "APPROVED — Alice Chen qualified for $35,000",
+  "dtiPercent": 15,
+  "riskFactors": [],
+  "riskTier": "low",
+}
+`;
+
+exports[`Loan demo — snapshot (default demo scenario) > matches snapshot for rejected applicant 1`] = `
+{
+  "creditTier": "fair",
+  "decision": "REJECTED — Bob Martinez: below-average credit; DTI at 60% exceeds 43% threshold; self-employed for only 1 year(s)",
+  "dtiPercent": 60,
+  "riskFactors": [
+    "below-average credit",
+    "DTI at 60% exceeds 43% threshold",
+    "self-employed for only 1 year(s)",
+  ],
+  "riskTier": "high",
+}
+`;

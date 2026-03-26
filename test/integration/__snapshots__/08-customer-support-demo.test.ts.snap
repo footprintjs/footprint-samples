@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Support demo — snapshot (default demo scenario) > matches snapshot for Jane Smith duplicate charge 1`] = `
+{
+  "category": "billing",
+  "customerName": "Jane Smith",
+  "customerTier": "vip",
+  "errorChainLength": 5,
+  "priority": "P1",
+  "resolutionType": "auto-refund",
+  "servicesSearched": 4,
+}
+`;

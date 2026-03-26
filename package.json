@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "description": "Runnable examples for the footprint library",
+  "exports": {
+    "./demos/loan-application": "./demos/loan-application.ts",
+    "./demos/customer-support": "./demos/customer-support.ts"
+  },
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
