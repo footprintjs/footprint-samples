@@ -98,7 +98,6 @@ const errorChart = flowChart<ErrorState>('LoadConfig', async (scope) => {
   }, 'process-response')
   .build();
 
-// @ts-expect-error -- setLogger is on FlowChartBuilder, using silent logger pattern
 const errorExecutor = new FlowChartExecutor(errorChart);
 errorExecutor.attachRecorder(errorMetrics);
 errorExecutor.attachRecorder(debug);

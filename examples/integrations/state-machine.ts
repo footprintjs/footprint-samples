@@ -51,7 +51,7 @@ class OrderStateMachine {
     const context: Record<string, any> = {};
 
     while (this.handlers.has(currentState)) {
-      const handler = this.handlers.get(currentState)!;
+      const handler: StateHandler = this.handlers.get(currentState)!;
       console.log(`  [FSM] State: ${currentState}`);
       currentState = await handler(order, context);
     }

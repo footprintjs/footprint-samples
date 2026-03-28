@@ -51,6 +51,7 @@ function buildSyncChart(totalBatches: number) {
       scope.errors = 0;
     },
     'fetch-config',
+    undefined,
     'fetch remote API configuration and credentials',
   )
     .addFunction(
@@ -179,7 +180,6 @@ class EveryFailureRecorder extends NarrativeFlowRecorder {
   for (const { name, recorder, note } of strategies) {
     const executor = new FlowChartExecutor(
       buildSyncChart(BATCH_COUNT),
-,
     );
     executor.attachFlowRecorder(recorder);
     await executor.run();
@@ -196,7 +196,6 @@ class EveryFailureRecorder extends NarrativeFlowRecorder {
   const separate = new SeparateNarrativeFlowRecorder();
   const executor = new FlowChartExecutor(
     buildSyncChart(BATCH_COUNT),
-,
   );
   executor.attachFlowRecorder(separate);
   await executor.run();

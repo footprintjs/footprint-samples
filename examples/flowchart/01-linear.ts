@@ -11,6 +11,8 @@
 
 import { flowChart,  FlowChartExecutor } from 'footprint';
 
+declare const INPUT: any;
+
 interface UserState {
   user: { username: string; email: string; joinedAt: string };
   displayName: string;

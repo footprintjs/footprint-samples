@@ -43,7 +43,7 @@ Each example demonstrates a single feature in isolation:
 | **Error Handling** | `npm run feature:errors` | Stage errors, try/catch, graceful degradation, `DebugRecorder` |
 | **Debug + Mermaid** | `npm run feature:debug` | `DebugRecorder` full trace + `toMermaid()` flowchart diagram |
 | **breakFn** | `npm run feature:break` | Early pipeline termination — validation gates, budget limits |
-| **Contract & OpenAPI** | `npm run feature:contract` | `defineContract` with Zod/JSON Schema, OpenAPI 3.1 generation |
+| **Contract & OpenAPI** | `npm run feature:contract` | `.contract()` with Zod/JSON Schema, OpenAPI 3.1 generation |
 
 ## Flowchart Examples
 

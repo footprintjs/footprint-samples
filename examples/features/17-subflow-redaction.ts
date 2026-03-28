@@ -80,6 +80,7 @@ const chart = flowChart<CheckoutState>(
     scope.status = 'pending';
   },
   'create-order',
+  undefined,
   'Initialize the checkout order',
 )
   .addSubFlowChartNext('payment', paymentSubflow, 'ProcessPayment', {
@@ -126,7 +127,7 @@ const chart = flowChart<CheckoutState>(
   console.log(`\nRedaction report — keys redacted: [${report.redactedKeys.join(', ')}]`);
 
   const snapshot = executor.getSnapshot();
-  const state = snapshot.sharedState as CheckoutState;
+  const state = snapshot.sharedState as unknown as CheckoutState;
   console.log(`\nFinal state:`);
   console.log(`  orderId:       ${state.orderId}`);
   console.log(`  charged:       ${state.charged}`);

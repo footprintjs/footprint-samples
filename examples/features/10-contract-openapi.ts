@@ -11,7 +11,6 @@
 import {
   flowChart,
   FlowChartExecutor,
-  defineContract,
   decide,
 } from 'footprint';
 import { z } from 'zod';
@@ -52,32 +51,31 @@ interface OrderState {
       })
       .setDefault('small')
       .end()
+    .contract({
+      input: z.object({
+        item: z.string().describe('Product name'),
+        quantity: z.number().describe('Number of units'),
+        unitPrice: z.number().describe('Price per unit in USD'),
+      }),
+      output: z.object({
+        total: z.number().describe('Order total including tax'),
+        shippingMethod: z.enum(['standard', 'express']),
+        status: z.string(),
+      }),
+      mapper: (scope) => ({
+        total: scope.total as number,
+        shippingMethod: scope.shippingMethod as string,
+        status: scope.status as string,
+      }),
+    })
     .build();
 
-  // ── Define contract with Zod schemas ────────────────────────────────────
+  // ── Contract metadata ────────────────────────────────────────────────────
 
   console.log('=== Contract with Zod Schemas ===\n');
 
-  const contract = defineContract(chart, {
-    inputSchema: z.object({
-      item: z.string().describe('Product name'),
-      quantity: z.number().describe('Number of units'),
-      unitPrice: z.number().describe('Price per unit in USD'),
-    }),
-    outputSchema: z.object({
-      total: z.number().describe('Order total including tax'),
-      shippingMethod: z.enum(['standard', 'express']),
-      status: z.string(),
-    }),
-    outputMapper: (scope) => ({
-      total: scope.total as number,
-      shippingMethod: scope.shippingMethod as string,
-      status: scope.status as string,
-    }),
-  });
-
   console.log('Input schema (JSON Schema):');
-  console.log(JSON.stringify(contract.inputSchema, null, 2));
+  console.log(JSON.stringify(chart.inputSchema, null, 2));
 
   // ── Run the pipeline ────────────────────────────────────────────────────
 
@@ -94,7 +92,7 @@ interface OrderState {
   narrative.forEach((line) => console.log(`  ${line}`));
 
   const snapshot = executor.getSnapshot();
-  const output = contract.outputMapper?.(snapshot.sharedState || {});
+  const output = chart.outputMapper?.(snapshot.sharedState || {});
   console.log('\nMapped output:');
   console.log(JSON.stringify(output, null, 2));
 
