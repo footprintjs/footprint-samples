@@ -48,6 +48,9 @@
     "integration:datadog": "npx tsx examples/integrations/datadog-exporter.ts",
     "integration:otel": "npx tsx examples/integrations/opentelemetry-exporter.ts",
     "integration:elastic": "npx tsx examples/integrations/elastic-exporter.ts",
+    "integration:llm-claude": "tsx examples/integrations/llm-claude-tool-call.ts",
+    "integration:llm-langchain": "tsx examples/integrations/llm-langchain-agent.ts",
+    "integration:llm-vercel-ai": "tsx examples/integrations/llm-vercel-ai-tool.ts",
     "all": "npm run quick-start && npm run feature:values && npm run feature:narrative && npm run feature:recorders && npm run feature:typed-scope && npm run feature:metrics && npm run feature:streaming && npm run feature:errors && npm run feature:debug && npm run feature:break && npm run feature:contract && npm run feature:subflow-redaction && npm run flow:linear && npm run flow:fork && npm run flow:decider && npm run flow:selector && npm run flow:subflow && npm run flow:loops"
   },
   "dependencies": {
@@ -55,6 +58,11 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@ai-sdk/anthropic": "^1.0.0",
+    "@anthropic-ai/sdk": "^0.54.0",
+    "@langchain/anthropic": "^0.3.0",
+    "@langchain/core": "^0.3.0",
+    "ai": "^4.0.0",
     "tsx": "^4.7.0",
     "typescript": "^5.4.0",
     "vitest": "^4.1.1"

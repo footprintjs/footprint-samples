@@ -58,6 +58,38 @@ Incremental complexity — each builds on the previous:
 | **Subflow** | `npm run flow:subflow` | Nested pipeline mounted inside parent |
 | **Loops** | `npm run flow:loops` | `loopTo` + `breakFn` for iteration |
 
+## Integration Examples
+
+Real-world integration patterns — FootPrint alongside popular tools and LLM frameworks:
+
+| Example | Run | What it shows |
+|---------|-----|---------------|
+| **State Machine** | `npm run integration:state-machine` | FSM + FootPrint — causal traces inside each state handler |
+| **Datadog** | `npm run integration:datadog` | Export FlowRecorder events as Datadog metrics + traces |
+| **OpenTelemetry** | `npm run integration:otel` | Emit spans to an OTEL collector from FlowRecorder hooks |
+| **Elastic** | `npm run integration:elastic` | Ship narrative entries to Elasticsearch for log search |
+| **Claude Tool Calling** | `npm run integration:llm-claude` | Expose flowchart as a Claude tool; trace explains the WHY |
+| **LangChain Agent** | `npm run integration:llm-langchain` | Same flowchart consumed by a LangChain agent via `tool()` |
+| **Vercel AI SDK** | `npm run integration:llm-vercel-ai` | Same flowchart with Vercel AI SDK `generateText` + `tool()` |
+
+### LLM Tool Calling — The Key Demo
+
+The LLM samples demonstrate the unique value of FootPrint for agent systems:
+
+1. Build a flowchart with `decide()` for automatic evidence capture
+2. `chart.toMCPTool()` produces a ready-made tool descriptor (`name`, `description`, `inputSchema`)
+3. The agent calls the tool — FootPrint runs the flowchart and captures the causal trace
+4. Return `{ result, trace }` to the agent — it can now explain the WHY in plain language
+
+No other library gives you automatic causal traces for agent reasoning.
+
+```bash
+# Requires ANTHROPIC_API_KEY
+ANTHROPIC_API_KEY=sk-ant-... npm run integration:llm-claude
+ANTHROPIC_API_KEY=sk-ant-... npm run integration:llm-langchain
+ANTHROPIC_API_KEY=sk-ant-... npm run integration:llm-vercel-ai
+```
+
 ## Run All
 
 ```bash
