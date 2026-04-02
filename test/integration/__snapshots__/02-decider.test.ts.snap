@@ -8,7 +8,7 @@ exports[`Decider with decide() — flowchart/03-decider > premium customer takes
   "Stage 2: Next step: Classify customer tier.",
   "  Step 1: Read customer = {name, plan, totalSpend, since}",
   "  Step 2: Read customer = {name, plan, totalSpend, since}",
-  "[Condition]: It examined "Premium with high spend": customer={name, plan, totalSpend, since}, customer={name, plan, totalSpend, since}, and chose ApplyLoyaltyDiscount.",
+  "  [Condition]: It examined "Premium with high spend": customer={name, plan, totalSpend, since}, customer={name, plan, totalSpend, since}, and chose ApplyLoyaltyDiscount.",
   "Stage 3: Next step: Apply loyalty discount.",
   "  Step 1: Read customer = {name, plan, totalSpend, since}",
   "  Step 2: Write discountPct = 15",
