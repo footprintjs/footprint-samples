@@ -55,6 +55,7 @@
   },
   "dependencies": {
     "footprint": "file:../footPrint",
+    "footprintjs": "file:../footPrint",
     "zod": "^4.3.6"
   },
   "devDependencies": {
