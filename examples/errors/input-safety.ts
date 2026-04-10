@@ -13,7 +13,7 @@
  */
 
 import { z } from 'zod';
-import { flowChart,  FlowChartExecutor } from 'footprint';
+import { flowChart,  FlowChartExecutor } from 'footprintjs';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // A. Schema Validation — fail-fast at the boundary

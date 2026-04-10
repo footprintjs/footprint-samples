@@ -1,7 +1,7 @@
 /**
  * Feature: Auto-generated Narrative
  *
- * Call recorder(narrative()) on the builder. The library automatically
+ * Call executor.enableNarrative() before run(). The library automatically
  * observes every read/write and merges it with control-flow events.
  * Call executor.getNarrative() to get the full causal trace — zero setup.
  *
@@ -12,7 +12,7 @@
 import {
   flowChart,
   FlowChartExecutor,
-} from 'footprint';
+} from 'footprintjs';
 
 interface TempState {
   temperature: number;
@@ -47,5 +47,5 @@ await executor.run();
 console.log('=== Auto-generated Narrative ===\n');
 executor.getNarrative().forEach((line) => console.log(`  ${line}`));
 console.log('\nNo casts, no scopeFactory boilerplate.');
-console.log('Just flowChart<T>() + recorder(narrative()) + getNarrative().');
+console.log('Just flowChart<T>() + enableNarrative() + getNarrative().');
 })().catch(console.error);

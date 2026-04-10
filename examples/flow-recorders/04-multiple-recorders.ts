@@ -21,7 +21,7 @@ import {
   NarrativeFlowRecorder,
   SilentNarrativeFlowRecorder,
   type FlowRecorder,
-} from 'footprint';
+} from 'footprintjs';
 
 interface LoopState {
   counter: number;
@@ -35,10 +35,9 @@ function buildLoopChart(iterations: number) {
   }, 'init')
     .addFunction('Process', async (scope) => {
       scope.counter = scope.counter + 1;
-      if (scope.counter < scope.target) {
-        return { name: 'loop-back', next: { name: 'Process', id: 'process' } };
-      }
+      if (scope.counter >= scope.target) scope.$break();
     }, 'process')
+    .loopTo('process')
     .build();
 }
 

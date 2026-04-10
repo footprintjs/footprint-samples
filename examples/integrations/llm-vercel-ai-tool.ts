@@ -12,7 +12,7 @@
 import { generateText, tool } from 'ai';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { z } from 'zod';
-import { flowChart, FlowChartExecutor, decide } from 'footprint';
+import { flowChart, FlowChartExecutor, decide } from 'footprintjs';
 
 // ── State interface ────────────────────────────────────────────────────────
 

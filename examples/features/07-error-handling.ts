@@ -19,7 +19,7 @@ import {
   type Recorder,
   type ErrorEvent,
   type WriteEvent,
-} from 'footprint';
+} from 'footprintjs';
 
 // ── Custom error alerting recorder ──────────────────────────────────────
 
@@ -29,12 +29,12 @@ class AlertRecorder implements Recorder {
   readonly writes: Array<{ stage: string; key: string }> = [];
 
   onWrite(event: WriteEvent): void {
-    this.writes.push({ stage: event.stageName, key: event.key });
+    this.writes.push({ stage: event.stageId, key: event.key });
   }
 
   onError(event: ErrorEvent): void {
     this.alerts.push({
-      stage: event.stageName,
+      stage: event.stageId,
       error: event.error?.message ?? String(event.error),
       timestamp: event.timestamp,
     });

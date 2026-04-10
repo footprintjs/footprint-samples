@@ -17,7 +17,7 @@ import {
   SilentNarrativeFlowRecorder,
   SeparateNarrativeFlowRecorder,
   AdaptiveNarrativeFlowRecorder,
-} from 'footprint';
+} from 'footprintjs';
 
 interface LoopState {
   counter: number;

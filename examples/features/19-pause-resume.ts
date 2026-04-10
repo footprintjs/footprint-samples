@@ -12,8 +12,8 @@
  * - Compliance checks requiring human sign-off
  */
 
-import { flowChart, FlowChartExecutor } from 'footprint';
-import type { PausableHandler } from 'footprint';
+import { flowChart, FlowChartExecutor } from 'footprintjs';
+import type { PausableHandler } from 'footprintjs';
 
 // ── State ───────────────────────────────────────────────────
 

@@ -14,7 +14,7 @@
 import {
   flowChart,
   FlowChartExecutor,
-} from 'footprint';
+} from 'footprintjs';
 
 // Define state shape — one interface, used everywhere
 interface AppState {

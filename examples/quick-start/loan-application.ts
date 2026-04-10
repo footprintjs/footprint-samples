@@ -11,7 +11,7 @@
  * Try it: https://footprintjs.github.io/footprint-playground/samples/loan-application
  */
 
-import { flowChart, FlowChartExecutor, decide } from 'footprint';
+import { flowChart, FlowChartExecutor, decide } from 'footprintjs';
 
 declare const INPUT: any;
 

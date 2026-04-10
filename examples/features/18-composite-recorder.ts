@@ -22,7 +22,7 @@ import {
   type Recorder,
   type WriteEvent,
   type StageEvent,
-} from 'footprint';
+} from 'footprintjs';
 
 // ── Business recorders ─────────────────────────────────────────────────
 
@@ -35,7 +35,7 @@ class ComplianceRecorder implements Recorder {
     // Only audit business decisions — skip internal plumbing
     if (['approved', 'reason', 'riskScore', 'fraudCheck'].includes(event.key)) {
       this.trail.push({
-        stage: event.stageName,
+        stage: event.stageId,
         key: event.key,
         value: event.value,
         timestamp: event.timestamp,
@@ -65,21 +65,21 @@ class SLARecorder implements Recorder {
   constructor(private thresholdMs: number = 200) {}
 
   onStageStart(event: StageEvent): void {
-    this.starts.set(event.stageName, event.timestamp);
+    this.starts.set(event.runtimeStageId, event.timestamp);
   }
 
   onStageEnd(event: StageEvent): void {
-    const start = this.starts.get(event.stageName);
+    const start = this.starts.get(event.runtimeStageId);
     if (start === undefined) return;
     const duration = event.timestamp - start;
     if (duration > this.thresholdMs) {
       this.violations.push({
-        stage: event.stageName,
+        stage: event.stageId,
         durationMs: Math.round(duration),
         thresholdMs: this.thresholdMs,
       });
     }
-    this.starts.delete(event.stageName);
+    this.starts.delete(event.runtimeStageId);
   }
 
   getViolations() {

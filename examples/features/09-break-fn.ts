@@ -16,7 +16,7 @@
 import {
   flowChart,
   FlowChartExecutor,
-} from 'footprint';
+} from 'footprintjs';
 
 // ── Scenario 1: Validation gate — stop pipeline on bad input ────────────
 

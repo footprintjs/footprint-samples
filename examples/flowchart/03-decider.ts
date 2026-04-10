@@ -16,7 +16,7 @@ import {
   flowChart,
   FlowChartExecutor,
   decide,
-} from 'footprint';
+} from 'footprintjs';
 
 interface Customer {
   name: string;

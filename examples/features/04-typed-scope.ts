@@ -11,7 +11,7 @@
 import {
   flowChart,
   FlowChartExecutor,
-} from 'footprint';
+} from 'footprintjs';
 
 // Define state as a plain TypeScript interface
 interface PatientState {

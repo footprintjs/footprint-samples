@@ -10,7 +10,7 @@
  * Try it: https://footprintjs.github.io/footprint-playground/samples/subflow
  */
 
-import { flowChart,  FlowChartBuilder, FlowChartExecutor, type TypedScope } from 'footprint';
+import { flowChart,  FlowChartBuilder, FlowChartExecutor, type TypedScope } from 'footprintjs';
 
 interface SubflowPaymentState {
   orderTotal: number;

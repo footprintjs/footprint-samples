@@ -16,8 +16,8 @@ import {
   getSubtreeSnapshot,
   ManifestFlowRecorder,
   type TypedScope,
-} from 'footprint';
-import type { ComposableRunner, FlowChart, RunOptions } from 'footprint';
+} from 'footprintjs';
+import type { ComposableRunner, FlowChart, RunOptions } from 'footprintjs';
 
 // ── State types ─────────────────────────────────────────────────────────
 

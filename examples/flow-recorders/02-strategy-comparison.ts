@@ -30,7 +30,7 @@ import {
   SeparateNarrativeFlowRecorder,
   type FlowRecorder,
   type FlowLoopEvent,
-} from 'footprint';
+} from 'footprintjs';
 
 const BATCH_COUNT = 20;
 
@@ -73,16 +73,12 @@ function buildSyncChart(totalBatches: number) {
           scope.errors = scope.errors + 1;
         }
 
-        if (processed + 1 < totalBatches) {
-          return {
-            name: 'next-batch',
-            next: { name: 'ProcessBatch', id: 'process-batch' },
-          };
-        }
+        if (processed + 1 >= totalBatches) scope.$break();
       },
       'process-batch',
       'sync the next batch of records to the remote API',
     )
+    .loopTo('process-batch')
     .addFunction(
       'Finalize',
       async (scope) => {

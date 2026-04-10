@@ -23,7 +23,7 @@ import {
   type FlowErrorEvent,
   type FlowSubflowEvent,
   type FlowLoopEvent,
-} from 'footprint';
+} from 'footprintjs';
 
 // ── Mock Elastic APM Agent (replace with elastic-apm-node) ──────────────
 

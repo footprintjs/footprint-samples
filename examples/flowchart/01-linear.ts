@@ -9,7 +9,7 @@
  * Try it: https://footprintjs.github.io/footprint-playground/samples/linear
  */
 
-import { flowChart,  FlowChartExecutor } from 'footprint';
+import { flowChart,  FlowChartExecutor } from 'footprintjs';
 
 declare const INPUT: any;
 

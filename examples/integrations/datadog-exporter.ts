@@ -17,7 +17,7 @@ import {
   type FlowErrorEvent,
   type FlowSubflowEvent,
   type FlowLoopEvent,
-} from 'footprint';
+} from 'footprintjs';
 
 // ── Mock Datadog SDK (replace with real dd-trace in production) ─────────
 

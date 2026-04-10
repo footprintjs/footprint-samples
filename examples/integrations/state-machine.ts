@@ -15,7 +15,7 @@
 import {
   flowChart,
   FlowChartExecutor,
-} from 'footprint';
+} from 'footprintjs';
 
 // ── Domain types ──────────────────────────────────────────────────────
 

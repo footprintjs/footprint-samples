@@ -14,7 +14,7 @@ import {
   flowChart,
   FlowChartExecutor,
   select,
-} from 'footprint';
+} from 'footprintjs';
 
 interface SelectorState {
   patient: {

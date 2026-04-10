@@ -19,7 +19,7 @@
  *   Inner:   (already executed -- only the structure is attached)
  */
 
-import { flowChart, FlowChartExecutor } from 'footprint';
+import { flowChart, FlowChartExecutor } from 'footprintjs';
 
 (async () => {
 

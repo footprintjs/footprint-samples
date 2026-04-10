@@ -24,7 +24,7 @@ import {
   type FlowSubflowEvent,
   type FlowLoopEvent,
   type FlowBreakEvent,
-} from 'footprint';
+} from 'footprintjs';
 
 // ── Mock OpenTelemetry API (replace with @opentelemetry/api) ────────────
 

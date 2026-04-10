@@ -13,7 +13,7 @@ import { z } from 'zod';
 import { tool } from '@langchain/core/tools';
 import { ChatAnthropic } from '@langchain/anthropic';
 import { HumanMessage, AIMessage, ToolMessage } from '@langchain/core/messages';
-import { flowChart, FlowChartExecutor, decide } from 'footprint';
+import { flowChart, FlowChartExecutor, decide } from 'footprintjs';
 
 // ── State interface ────────────────────────────────────────────────────────
 

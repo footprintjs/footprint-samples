@@ -21,7 +21,7 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
-import { flowChart, FlowChartExecutor, decide } from 'footprint';
+import { flowChart, FlowChartExecutor, decide } from 'footprintjs';
 
 // ── State interface ────────────────────────────────────────────────────────
 

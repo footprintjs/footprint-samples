@@ -15,7 +15,7 @@ import {
   FlowChartBuilder,
   FlowChartExecutor,
   MetricRecorder,
-} from 'footprint';
+} from 'footprintjs';
 
 interface OrderState {
   orderId: string;
@@ -51,11 +51,11 @@ console.log('  Result:', executor1.getSnapshot().sharedState.status);
 console.log('  Narrative:');
 executor1.getNarrative().forEach((line) => console.log(`    ${line}`));
 
-// ── Pattern 2: FlowChartBuilder +──────────────
+// ── Pattern 2: FlowChartBuilder + TypedScope<T> ────────────
 
-console.log('\n=== Pattern 2: FlowChartBuilder +===\n');
+console.log('\n=== Pattern 2: FlowChartBuilder + TypedScope<T> ===\n');
 
-const chart2 = new FlowChartBuilder<any, import('footprint').TypedScope<OrderState>>()
+const chart2 = new FlowChartBuilder<any, import('footprintjs').TypedScope<OrderState>>()
   .start('Receive', async (scope) => {
     scope.orderId = 'ORD-99';
     scope.items = ['Premium Widget'];

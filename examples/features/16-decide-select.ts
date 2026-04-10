@@ -15,7 +15,7 @@ import {
   FlowChartExecutor,
   decide,
   select,
-} from 'footprint';
+} from 'footprintjs';
 
 // ── State types ─────────────────────────────────────────────────────────
 

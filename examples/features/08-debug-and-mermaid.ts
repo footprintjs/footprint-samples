@@ -12,7 +12,7 @@ import {
   flowChart,
   FlowChartExecutor,
   DebugRecorder,
-} from 'footprint';
+} from 'footprintjs';
 
 interface TextState {
   rawText: string;
@@ -61,10 +61,11 @@ console.log('=== DebugRecorder — Full Trace ===\n');
 const entries = debug.getEntries();
 for (const entry of entries) {
   const ts = new Date(entry.timestamp).toISOString().split('T')[1].slice(0, 12);
+  const d = entry.data as Record<string, unknown> | undefined;
   if (entry.type === 'write') {
-    console.log(`  [${ts}] WRITE ${entry.stageName}: ${(entry.data as any)?.key} = ${JSON.stringify((entry.data as any)?.value)}`);
+    console.log(`  [${ts}] WRITE ${entry.stageName}: ${d?.key} = ${JSON.stringify(d?.value)}`);
   } else if (entry.type === 'read') {
-    console.log(`  [${ts}] READ  ${entry.stageName}: ${(entry.data as any)?.key}`);
+    console.log(`  [${ts}] READ  ${entry.stageName}: ${d?.key}`);
   }
 }
 

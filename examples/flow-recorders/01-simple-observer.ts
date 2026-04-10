@@ -14,7 +14,7 @@ import {
   
   FlowChartExecutor,
   type FlowRecorder,
-} from 'footprint';
+} from 'footprintjs';
 
 interface SimpleState {
   input: string;

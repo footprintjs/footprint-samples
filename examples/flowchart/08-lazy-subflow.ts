@@ -31,7 +31,7 @@ import {
   FlowChartExecutor,
   ManifestFlowRecorder,
   type TypedScope,
-} from 'footprint';
+} from 'footprintjs';
 
 // -- State interfaces ---------------------------------------------------------
 

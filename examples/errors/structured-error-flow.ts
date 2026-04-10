@@ -21,8 +21,8 @@ import {
   InputValidationError,
   extractErrorInfo,
   formatErrorInfo,
-} from 'footprint';
-import type { FlowRecorder, FlowErrorEvent } from 'footprint';
+} from 'footprintjs';
+import type { FlowRecorder, FlowErrorEvent } from 'footprintjs';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // A. Custom FlowRecorder with structured error observation
@@ -83,7 +83,7 @@ async function demoStructuredErrorRecorder() {
           console.log(`    - ${path}: ${issue.message} [${issue.code}]`);
           fields.push(path);
         }
-        errorLog.push({ stage: event.stageName, fields });
+        errorLog.push({ stage: event.traversalContext?.stageId ?? event.stageName, fields });
       }
     },
   };

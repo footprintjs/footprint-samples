@@ -17,8 +17,8 @@
  * Run:  npm run feature:subflow-redaction
  */
 
-import { flowChart, FlowChartBuilder, FlowChartExecutor } from 'footprint';
-import type { TypedScope } from 'footprint';
+import { flowChart, FlowChartBuilder, FlowChartExecutor } from 'footprintjs';
+import type { TypedScope } from 'footprintjs';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 

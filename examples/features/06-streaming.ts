@@ -12,7 +12,7 @@ import {
   flowChart,
   FlowChartExecutor,
   type StreamHandlers,
-} from 'footprint';
+} from 'footprintjs';
 
 interface SummaryState {
   patientName: string;
@@ -72,12 +72,7 @@ const chart = flowChart<SummaryState>('PrepareContext', async (scope) => {
   }, 'save-report')
   .build();
 
-const executor = new FlowChartExecutor(
-  chart,
-  undefined,
-  undefined, undefined, undefined, undefined,
-  streamHandlers,
-);
+const executor = new FlowChartExecutor(chart, { streamHandlers });
 
 console.log('=== Streaming Stage (LLM simulation) ===\n');
 await executor.run();

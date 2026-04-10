@@ -19,7 +19,7 @@ import {
   type FlowLoopEvent,
   type FlowDecisionEvent,
   type FlowStageEvent,
-} from 'footprint';
+} from 'footprintjs';
 
 // ── Pattern 1: Object literal ────────────────────────────────────────────
 
@@ -101,10 +101,9 @@ function buildChart() {
   }, 'init')
     .addFunction('Process', async (scope) => {
       scope.counter = scope.counter + 1;
-      if (scope.counter < scope.target) {
-        return { name: 'loop-back', next: { name: 'Process', id: 'process' } };
-      }
+      if (scope.counter >= scope.target) scope.$break();
     }, 'process')
+    .loopTo('process')
     .addFunction('Done', async (scope) => {
       scope.result = 'completed';
     }, 'done')

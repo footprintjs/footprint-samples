@@ -12,7 +12,7 @@ import {
   flowChart,
   FlowChartExecutor,
   decide,
-} from 'footprint';
+} from 'footprintjs';
 import { z } from 'zod';
 
 interface OrderState {

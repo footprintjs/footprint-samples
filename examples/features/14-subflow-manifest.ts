@@ -16,8 +16,8 @@ import {
   FlowChartExecutor,
   ManifestFlowRecorder,
   type TypedScope,
-} from 'footprint';
-import type { ManifestEntry } from 'footprint';
+} from 'footprintjs';
+import type { ManifestEntry } from 'footprintjs';
 
 interface OrderState {
   orderId: string;
